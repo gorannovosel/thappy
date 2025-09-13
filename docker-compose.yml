@@ -86,6 +86,25 @@ services:
       - thappy-network
     restart: unless-stopped
 
+  # Frontend React application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: thappy-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - thappy-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Database migrations (runs once)
   migrate:
     image: migrate/migrate

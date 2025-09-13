@@ -219,6 +219,31 @@ frontend-build:
 frontend-test:
 	cd frontend && npm test -- --coverage --watchAll=false
 
+## frontend-lint: Lint frontend code
+.PHONY: frontend-lint
+frontend-lint:
+	cd frontend && npm run lint
+
+## frontend-lint-fix: Fix frontend linting issues
+.PHONY: frontend-lint-fix
+frontend-lint-fix:
+	cd frontend && npm run lint:fix
+
+## frontend-format: Format frontend code
+.PHONY: frontend-format
+frontend-format:
+	cd frontend && npm run format
+
+## frontend-format-check: Check frontend code formatting
+.PHONY: frontend-format-check
+frontend-format-check:
+	cd frontend && npm run format:check
+
+## frontend-type-check: Run TypeScript type checking
+.PHONY: frontend-type-check
+frontend-type-check:
+	cd frontend && npm run type-check
+
 ## dev-full: Start both backend and frontend
 .PHONY: dev-full
 dev-full:
@@ -234,3 +259,21 @@ build-all: build frontend-build
 .PHONY: clean-all
 clean-all: clean
 	cd frontend && rm -rf node_modules build
+
+## frontend-ci: Run frontend CI pipeline (lint, format, type-check, test)
+.PHONY: frontend-ci
+frontend-ci: frontend-lint frontend-format-check frontend-type-check frontend-test
+
+## ci-all: Run CI pipeline for both backend and frontend
+.PHONY: ci-all
+ci-all: ci frontend-ci
+
+## dev-frontend-only: Start only frontend in development mode
+.PHONY: dev-frontend-only
+dev-frontend-only: frontend-install
+	make frontend-dev
+
+## production-frontend: Build frontend for production
+.PHONY: production-frontend
+production-frontend:
+	cd frontend && npm ci --only=production && npm run build
