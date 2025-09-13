@@ -33,7 +33,7 @@ export const TokenManager = {
     } catch {
       return null;
     }
-  }
+  },
 };
 
 export const UserManager = {
@@ -63,7 +63,7 @@ export const UserManager = {
     const updatedUser = { ...currentUser, ...updates };
     this.setUser(updatedUser);
     return updatedUser;
-  }
+  },
 };
 
 export const AuthUtils = {
@@ -101,5 +101,5 @@ export const AuthUtils = {
     }, warningTime);
 
     return () => clearTimeout(timeoutId);
-  }
+  },
 };

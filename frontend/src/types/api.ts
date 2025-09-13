@@ -1,5 +1,5 @@
 // Base API response types
-export interface ApiResponse<T = any> {
+export interface ApiResponse {
   message: string;
   error?: string;
 }

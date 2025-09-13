@@ -14,7 +14,13 @@ const TherapistDashboard: React.FC = () => {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+      <div
+        style={{
+          display: 'grid',
+          gap: '2rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        }}
+      >
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>My Profile</h2>
@@ -23,12 +29,8 @@ const TherapistDashboard: React.FC = () => {
             </p>
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <button className={styles.btnPrimary}>
-              View Profile
-            </button>
-            <button className={styles.btnSecondary}>
-              Edit Profile
-            </button>
+            <button className={styles.btnPrimary}>View Profile</button>
+            <button className={styles.btnSecondary}>Edit Profile</button>
           </div>
         </div>
 
@@ -39,11 +41,16 @@ const TherapistDashboard: React.FC = () => {
               Manage your availability for new clients
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              marginBottom: '1rem',
+            }}
+          >
             <span>Accepting New Clients:</span>
-            <button className={styles.btnSecondary}>
-              Configure
-            </button>
+            <button className={styles.btnSecondary}>Configure</button>
           </div>
         </div>
 
@@ -57,9 +64,7 @@ const TherapistDashboard: React.FC = () => {
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
             No clients assigned yet
           </p>
-          <button className={styles.btnSecondary}>
-            Manage Clients
-          </button>
+          <button className={styles.btnSecondary}>Manage Clients</button>
         </div>
 
         <div className={styles.card}>
@@ -72,9 +77,7 @@ const TherapistDashboard: React.FC = () => {
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
             No appointments scheduled
           </p>
-          <button className={styles.btnSecondary}>
-            View Schedule
-          </button>
+          <button className={styles.btnSecondary}>View Schedule</button>
         </div>
       </div>
     </div>

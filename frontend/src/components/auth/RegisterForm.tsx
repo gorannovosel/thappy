@@ -54,8 +54,13 @@ const RegisterForm: React.FC = () => {
       errors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       errors.password = 'Password must be at least 8 characters';
-    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(formData.password)) {
-      errors.password = 'Password must contain uppercase, lowercase, number, and special character';
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(
+        formData.password
+      )
+    ) {
+      errors.password =
+        'Password must contain uppercase, lowercase, number, and special character';
     }
 
     // Confirm password validation
@@ -69,7 +74,9 @@ const RegisterForm: React.FC = () => {
     return !errors.email && !errors.password && !errors.confirmPassword;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
@@ -99,7 +106,10 @@ const RegisterForm: React.FC = () => {
       });
 
       // Redirect to appropriate dashboard based on role
-      const dashboardRoute = formData.role === 'client' ? '/client/dashboard' : '/therapist/dashboard';
+      const dashboardRoute =
+        formData.role === 'client'
+          ? '/client/dashboard'
+          : '/therapist/dashboard';
       navigate(dashboardRoute);
     } catch {
       // Error is handled by the auth context
@@ -133,7 +143,9 @@ const RegisterForm: React.FC = () => {
                 disabled={isLoading}
               >
                 <option value="client">Client - Looking for therapy</option>
-                <option value="therapist">Therapist - Providing services</option>
+                <option value="therapist">
+                  Therapist - Providing services
+                </option>
               </select>
             </div>
 
@@ -175,8 +187,15 @@ const RegisterForm: React.FC = () => {
               {formErrors.password && (
                 <div className={styles.errorMessage}>{formErrors.password}</div>
               )}
-              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-                Password must be at least 8 characters with uppercase, lowercase, number, and special character
+              <div
+                style={{
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--color-text-muted)',
+                  marginTop: '0.25rem',
+                }}
+              >
+                Password must be at least 8 characters with uppercase,
+                lowercase, number, and special character
               </div>
             </div>
 
@@ -196,7 +215,9 @@ const RegisterForm: React.FC = () => {
                 required
               />
               {formErrors.confirmPassword && (
-                <div className={styles.errorMessage}>{formErrors.confirmPassword}</div>
+                <div className={styles.errorMessage}>
+                  {formErrors.confirmPassword}
+                </div>
               )}
             </div>
 

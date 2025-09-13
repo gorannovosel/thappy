@@ -1,4 +1,5 @@
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+export const API_BASE_URL =
+  process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 export const API_ENDPOINTS = {
   // Health
@@ -28,7 +29,8 @@ export const API_ENDPOINTS = {
   THERAPIST_LICENSE: '/api/therapist/profile/license',
   THERAPIST_SPECIALIZATIONS: '/api/therapist/profile/specializations',
   THERAPIST_ADD_SPECIALIZATION: '/api/therapist/profile/specialization/add',
-  THERAPIST_REMOVE_SPECIALIZATION: '/api/therapist/profile/specialization/remove',
+  THERAPIST_REMOVE_SPECIALIZATION:
+    '/api/therapist/profile/specialization/remove',
   THERAPIST_ACCEPTING_CLIENTS: '/api/therapist/profile/accepting-clients',
   THERAPIST_DELETE: '/api/therapist/profile/delete',
 

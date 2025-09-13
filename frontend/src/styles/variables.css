@@ -1,6 +1,7 @@
 :root {
   /* Colors */
   --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
   --color-primary-hover: #1d4ed8;
   --color-secondary: #64748b;
   --color-success: #10b981;
@@ -8,12 +9,15 @@
   --color-error: #ef4444;
 
   /* Text colors */
+  --color-text: #1f2937;
   --color-text-primary: #1f2937;
   --color-text-secondary: #6b7280;
   --color-text-muted: #9ca3af;
   --color-text-white: #ffffff;
 
   /* Background colors */
+  --color-background: #f9fafb;
+  --color-surface: #ffffff;
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f9fafb;
   --color-bg-muted: #f3f4f6;
@@ -28,7 +32,8 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   /* Spacing */
   --spacing-xs: 0.25rem;

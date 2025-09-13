@@ -1,27 +1,25 @@
 import React from 'react';
-import styles from '../../styles/global.module.css';
+import styles from './LoadingSpinner.module.css';
 
-interface LoadingSpinnerProps {
-  size?: 'small' | 'medium' | 'large';
+export interface LoadingSpinnerProps {
+  size?: 'small' | 'medium' | 'large' | 'xl';
   className?: string;
+  color?: 'primary' | 'white' | 'muted';
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'medium',
   className = '',
+  color = 'primary',
 }) => {
-  const sizeMap = {
-    small: { width: '16px', height: '16px' },
-    medium: { width: '20px', height: '20px' },
-    large: { width: '24px', height: '24px' },
-  };
-
   return (
     <div
-      className={`${styles.loadingSpinner} ${className}`}
-      style={sizeMap[size]}
+      className={`${styles.spinner} ${styles[size]} ${styles[color]} ${className}`}
+      role="status"
       aria-label="Loading..."
-    />
+    >
+      <span className={styles.visuallyHidden}>Loading...</span>
+    </div>
   );
 };
 

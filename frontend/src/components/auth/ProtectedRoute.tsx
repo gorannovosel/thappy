@@ -20,12 +20,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (isLoading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '50vh'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '50vh',
+        }}
+      >
         <LoadingSpinner size="large" />
       </div>
     );
@@ -38,7 +40,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (requiredRole && user?.role !== requiredRole) {
     // User doesn't have required role, redirect to appropriate dashboard
-    const dashboardRoute = user?.role === 'client' ? '/client/dashboard' : '/therapist/dashboard';
+    const dashboardRoute =
+      user?.role === 'client' ? '/client/dashboard' : '/therapist/dashboard';
     return <Navigate to={dashboardRoute} replace />;
   }
 

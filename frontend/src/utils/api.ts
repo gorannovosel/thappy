@@ -26,7 +26,10 @@ import type {
 } from '../types/api';
 
 class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string
+  ) {
     super(message);
     this.name = 'ApiError';
   }
@@ -107,7 +110,9 @@ class ApiClient {
   }
 
   // Client profile endpoints
-  async createClientProfile(data: CreateClientProfileRequest): Promise<ClientProfileResponse> {
+  async createClientProfile(
+    data: CreateClientProfileRequest
+  ): Promise<ClientProfileResponse> {
     return this.request<ClientProfileResponse>('/api/client/profile', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -118,25 +123,40 @@ class ApiClient {
     return this.request<ClientProfileResponse>('/api/client/profile/get');
   }
 
-  async updateClientPersonalInfo(data: UpdateClientPersonalInfoRequest): Promise<ClientProfileResponse> {
-    return this.request<ClientProfileResponse>('/api/client/profile/personal-info', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+  async updateClientPersonalInfo(
+    data: UpdateClientPersonalInfoRequest
+  ): Promise<ClientProfileResponse> {
+    return this.request<ClientProfileResponse>(
+      '/api/client/profile/personal-info',
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async updateClientContactInfo(data: UpdateClientContactInfoRequest): Promise<ClientProfileResponse> {
-    return this.request<ClientProfileResponse>('/api/client/profile/contact-info', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+  async updateClientContactInfo(
+    data: UpdateClientContactInfoRequest
+  ): Promise<ClientProfileResponse> {
+    return this.request<ClientProfileResponse>(
+      '/api/client/profile/contact-info',
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async updateClientDateOfBirth(data: UpdateClientDateOfBirthRequest): Promise<ClientProfileResponse> {
-    return this.request<ClientProfileResponse>('/api/client/profile/date-of-birth', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+  async updateClientDateOfBirth(
+    data: UpdateClientDateOfBirthRequest
+  ): Promise<ClientProfileResponse> {
+    return this.request<ClientProfileResponse>(
+      '/api/client/profile/date-of-birth',
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
   async deleteClientProfile(): Promise<ApiResponse> {
@@ -146,7 +166,9 @@ class ApiClient {
   }
 
   // Therapist profile endpoints
-  async createTherapistProfile(data: CreateTherapistProfileRequest): Promise<TherapistProfileResponse> {
+  async createTherapistProfile(
+    data: CreateTherapistProfileRequest
+  ): Promise<TherapistProfileResponse> {
     return this.request<TherapistProfileResponse>('/api/therapist/profile', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -157,60 +179,100 @@ class ApiClient {
     return this.request<TherapistProfileResponse>('/api/therapist/profile/get');
   }
 
-  async updateTherapistPersonalInfo(data: UpdateTherapistPersonalInfoRequest): Promise<TherapistProfileResponse> {
-    return this.request<TherapistProfileResponse>('/api/therapist/profile/personal-info', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+  async updateTherapistPersonalInfo(
+    data: UpdateTherapistPersonalInfoRequest
+  ): Promise<TherapistProfileResponse> {
+    return this.request<TherapistProfileResponse>(
+      '/api/therapist/profile/personal-info',
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async updateTherapistContactInfo(data: UpdateTherapistContactInfoRequest): Promise<TherapistProfileResponse> {
-    return this.request<TherapistProfileResponse>('/api/therapist/profile/contact-info', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+  async updateTherapistContactInfo(
+    data: UpdateTherapistContactInfoRequest
+  ): Promise<TherapistProfileResponse> {
+    return this.request<TherapistProfileResponse>(
+      '/api/therapist/profile/contact-info',
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async updateTherapistBio(data: UpdateTherapistBioRequest): Promise<TherapistProfileResponse> {
-    return this.request<TherapistProfileResponse>('/api/therapist/profile/bio', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+  async updateTherapistBio(
+    data: UpdateTherapistBioRequest
+  ): Promise<TherapistProfileResponse> {
+    return this.request<TherapistProfileResponse>(
+      '/api/therapist/profile/bio',
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async updateTherapistLicense(data: UpdateTherapistLicenseRequest): Promise<TherapistProfileResponse> {
-    return this.request<TherapistProfileResponse>('/api/therapist/profile/license', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+  async updateTherapistLicense(
+    data: UpdateTherapistLicenseRequest
+  ): Promise<TherapistProfileResponse> {
+    return this.request<TherapistProfileResponse>(
+      '/api/therapist/profile/license',
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async updateTherapistSpecializations(data: UpdateTherapistSpecializationsRequest): Promise<TherapistProfileResponse> {
-    return this.request<TherapistProfileResponse>('/api/therapist/profile/specializations', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+  async updateTherapistSpecializations(
+    data: UpdateTherapistSpecializationsRequest
+  ): Promise<TherapistProfileResponse> {
+    return this.request<TherapistProfileResponse>(
+      '/api/therapist/profile/specializations',
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async addTherapistSpecialization(data: AddSpecializationRequest): Promise<TherapistProfileResponse> {
-    return this.request<TherapistProfileResponse>('/api/therapist/profile/specialization/add', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+  async addTherapistSpecialization(
+    data: AddSpecializationRequest
+  ): Promise<TherapistProfileResponse> {
+    return this.request<TherapistProfileResponse>(
+      '/api/therapist/profile/specialization/add',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async removeTherapistSpecialization(data: RemoveSpecializationRequest): Promise<TherapistProfileResponse> {
-    return this.request<TherapistProfileResponse>('/api/therapist/profile/specialization/remove', {
-      method: 'DELETE',
-      body: JSON.stringify(data),
-    });
+  async removeTherapistSpecialization(
+    data: RemoveSpecializationRequest
+  ): Promise<TherapistProfileResponse> {
+    return this.request<TherapistProfileResponse>(
+      '/api/therapist/profile/specialization/remove',
+      {
+        method: 'DELETE',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async updateTherapistAcceptingClients(data: UpdateAcceptingClientsRequest): Promise<TherapistProfileResponse> {
-    return this.request<TherapistProfileResponse>('/api/therapist/profile/accepting-clients', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+  async updateTherapistAcceptingClients(
+    data: UpdateAcceptingClientsRequest
+  ): Promise<TherapistProfileResponse> {
+    return this.request<TherapistProfileResponse>(
+      '/api/therapist/profile/accepting-clients',
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
   async deleteTherapistProfile(): Promise<ApiResponse> {

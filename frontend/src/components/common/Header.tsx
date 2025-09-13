@@ -1,44 +1,68 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useSessionTimeout } from '../../hooks/useSessionTimeout';
+import ConfirmDialog from './ConfirmDialog';
 import styles from '../../styles/global.module.css';
 
 const Header: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const handleLogout = () => {
-    logout();
+  // Enable session timeout for authenticated users
+  useSessionTimeout({
+    timeoutDuration: 30 * 60 * 1000, // 30 minutes
+    warningDuration: 5 * 60 * 1000, // Show warning 5 minutes before
+  });
+
+  const handleLogoutClick = () => {
     setIsDropdownOpen(false);
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    logout();
+    setShowLogoutConfirm(false);
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutConfirm(false);
   };
 
   const getDashboardRoute = () => {
     if (!user) return '/';
-    return user.role === 'client' ? '/client/dashboard' : '/therapist/dashboard';
+    return user.role === 'client'
+      ? '/client/dashboard'
+      : '/therapist/dashboard';
   };
 
   return (
-    <header style={{
-      borderBottom: '1px solid var(--color-border)',
-      backgroundColor: 'var(--color-bg-primary)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 'var(--z-header)'
-    }}>
+    <header
+      style={{
+        borderBottom: '1px solid var(--color-border)',
+        backgroundColor: 'var(--color-bg-primary)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 'var(--z-header)',
+      }}
+    >
       <div className={styles.container}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: '64px'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: '64px',
+          }}
+        >
           <Link
             to="/"
             style={{
               fontSize: 'var(--font-size-xl)',
               fontWeight: 'var(--font-weight-bold)',
               color: 'var(--color-primary)',
-              textDecoration: 'none'
+              textDecoration: 'none',
             }}
           >
             Thappy
@@ -46,7 +70,13 @@ const Header: React.FC = () => {
 
           <nav>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <Link to="/therapists" style={{ textDecoration: 'none', color: 'var(--color-text-secondary)' }}>
+              <Link
+                to="/therapists"
+                style={{
+                  textDecoration: 'none',
+                  color: 'var(--color-text-secondary)',
+                }}
+              >
                 Find Therapists
               </Link>
 
@@ -55,25 +85,31 @@ const Header: React.FC = () => {
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className={styles.btnSecondary}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                    }}
                   >
                     {user?.email}
                     <span style={{ fontSize: '0.75rem' }}>▼</span>
                   </button>
 
                   {isDropdownOpen && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      marginTop: '0.5rem',
-                      backgroundColor: 'var(--color-bg-primary)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--border-radius)',
-                      boxShadow: 'var(--shadow-md)',
-                      minWidth: '200px',
-                      zIndex: 1000,
-                    }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        right: 0,
+                        marginTop: '0.5rem',
+                        backgroundColor: 'var(--color-bg-primary)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--border-radius)',
+                        boxShadow: 'var(--shadow-md)',
+                        minWidth: '200px',
+                        zIndex: 1000,
+                      }}
+                    >
                       <div style={{ padding: '0.5rem 0' }}>
                         <Link
                           to={getDashboardRoute()}
@@ -99,9 +135,15 @@ const Header: React.FC = () => {
                         >
                           Profile
                         </Link>
-                        <hr style={{ margin: '0.5rem 0', border: 'none', borderTop: '1px solid var(--color-border)' }} />
+                        <hr
+                          style={{
+                            margin: '0.5rem 0',
+                            border: 'none',
+                            borderTop: '1px solid var(--color-border)',
+                          }}
+                        />
                         <button
-                          onClick={handleLogout}
+                          onClick={handleLogoutClick}
                           style={{
                             display: 'block',
                             width: '100%',
@@ -133,6 +175,17 @@ const Header: React.FC = () => {
           </nav>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        title="Sign Out"
+        message="Are you sure you want to sign out of your account?"
+        confirmLabel="Sign Out"
+        cancelLabel="Cancel"
+        type="default"
+        onConfirm={handleLogoutConfirm}
+        onCancel={handleLogoutCancel}
+      />
     </header>
   );
 };

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+} from 'react';
 import { apiClient, ApiError } from '../utils/api';
 import { TokenManager, UserManager, AuthUtils } from '../utils/auth';
 import type { User, LoginRequest, RegisterRequest } from '../types/api';
@@ -101,7 +107,9 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   }
 }
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   const login = useCallback(async (data: LoginRequest) => {
@@ -127,9 +135,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         AuthUtils.clearAuthData();
         dispatch({ type: 'LOGOUT' });
       });
-
     } catch (error) {
-      const message = error instanceof ApiError ? error.message : 'Login failed';
+      const message =
+        error instanceof ApiError ? error.message : 'Login failed';
       dispatch({ type: 'AUTH_ERROR', payload: message });
       throw error;
     }
@@ -158,9 +166,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         AuthUtils.clearAuthData();
         dispatch({ type: 'LOGOUT' });
       });
-
     } catch (error) {
-      const message = error instanceof ApiError ? error.message : 'Registration failed';
+      const message =
+        error instanceof ApiError ? error.message : 'Registration failed';
       dispatch({ type: 'AUTH_ERROR', payload: message });
       throw error;
     }
@@ -206,7 +214,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         AuthUtils.clearAuthData();
         dispatch({ type: 'LOGOUT' });
       });
-
     } catch (error) {
       // Token is invalid or expired
       AuthUtils.clearAuthData();
@@ -242,11 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuthStatus,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {

@@ -55,7 +55,10 @@ export const logAuthState = (state: any) => {
   }
 };
 
-export const testApiEndpoint = async (endpoint: string, options?: RequestInit) => {
+export const testApiEndpoint = async (
+  endpoint: string,
+  options?: RequestInit
+) => {
   if (process.env.NODE_ENV === 'development') {
     const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
     const url = `${baseUrl}${endpoint}`;

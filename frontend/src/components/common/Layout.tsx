@@ -7,9 +7,17 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+    >
       <Header />
-      <main style={{ flex: 1, paddingTop: 'var(--spacing-xl)', paddingBottom: 'var(--spacing-xl)' }}>
+      <main
+        style={{
+          flex: 1,
+          paddingTop: 'var(--spacing-xl)',
+          paddingBottom: 'var(--spacing-xl)',
+        }}
+      >
         {children}
       </main>
     </div>

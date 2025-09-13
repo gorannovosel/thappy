@@ -11,7 +11,14 @@ const HomePage: React.FC = () => {
           Connect with licensed therapists and manage your therapy journey.
         </p>
 
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '2rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '1rem',
+            justifyContent: 'center',
+            marginBottom: '2rem',
+          }}
+        >
           <Link to="/login" className={styles.btnPrimary}>
             Sign In
           </Link>
