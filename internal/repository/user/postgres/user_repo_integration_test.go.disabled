@@ -1,0 +1,492 @@
+package postgres
+
+import (
+	"context"
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/goran/thappy/internal/domain"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
+)
+
+var testDB *pgxpool.Pool
+var testContainer testcontainers.Container
+
+func TestMain(m *testing.M) {
+	ctx := context.Background()
+
+	// Start PostgreSQL container
+	pgContainer, err := postgres.RunContainer(ctx,
+		testcontainers.WithImage("postgres:15-alpine"),
+		postgres.WithDatabase("testdb"),
+		postgres.WithUsername("testuser"),
+		postgres.WithPassword("testpass"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(5*time.Second),
+		),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to start container: %v", err))
+	}
+
+	testContainer = pgContainer
+
+	// Get connection string
+	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
+	if err != nil {
+		panic(fmt.Sprintf("Failed to get connection string: %v", err))
+	}
+
+	// Connect to the database
+	testDB, err = pgxpool.New(ctx, connStr)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to connect to database: %v", err))
+	}
+
+	// Run migrations
+	if err := runMigrations(connStr); err != nil {
+		panic(fmt.Sprintf("Failed to run migrations: %v", err))
+	}
+
+	// Run tests
+	code := m.Run()
+
+	// Cleanup
+	testDB.Close()
+	if err := testContainer.Terminate(ctx); err != nil {
+		fmt.Printf("Failed to terminate container: %v\n", err)
+	}
+
+	// Exit with test code
+	if code != 0 {
+		panic("Tests failed")
+	}
+}
+
+func runMigrations(connStr string) error {
+	config, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		return err
+	}
+
+	db := stdlib.OpenDB(*config.ConnConfig)
+	defer db.Close()
+
+	// Create users table
+	migration := `
+		CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+		CREATE TABLE IF NOT EXISTS users (
+			id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+			email VARCHAR(255) UNIQUE NOT NULL,
+			password_hash VARCHAR(255) NOT NULL,
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+			updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+		);
+
+		CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+		CREATE OR REPLACE FUNCTION update_updated_at_column()
+		RETURNS TRIGGER AS $$
+		BEGIN
+			NEW.updated_at = NOW();
+			RETURN NEW;
+		END;
+		$$ LANGUAGE plpgsql;
+
+		DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+		CREATE TRIGGER update_users_updated_at
+			BEFORE UPDATE ON users
+			FOR EACH ROW
+			EXECUTE FUNCTION update_updated_at_column();
+	`
+
+	_, err = db.Exec(migration)
+	return err
+}
+
+func cleanupDatabase(t *testing.T) {
+	ctx := context.Background()
+	_, err := testDB.Exec(ctx, "TRUNCATE TABLE users CASCADE")
+	if err != nil {
+		t.Fatalf("Failed to cleanup database: %v", err)
+	}
+}
+
+func TestUserRepository_Create(t *testing.T) {
+	repo := NewUserRepository(testDB)
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		user    *domain.User
+		wantErr bool
+		errType error
+		setup   func()
+	}{
+		{
+			name: "successful user creation",
+			user: func() *domain.User {
+				u, _ := domain.NewUser("test@example.com", "password123")
+				return u
+			}(),
+			wantErr: false,
+			setup:   func() { cleanupDatabase(t) },
+		},
+		{
+			name: "duplicate email",
+			user: func() *domain.User {
+				u, _ := domain.NewUser("duplicate@example.com", "password123")
+				return u
+			}(),
+			wantErr: true,
+			errType: domain.ErrUserAlreadyExists,
+			setup: func() {
+				cleanupDatabase(t)
+				// Create first user
+				u, _ := domain.NewUser("duplicate@example.com", "password123")
+				repo.Create(ctx, u)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+
+			err := repo.Create(ctx, tt.user)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Error("Create() expected error but got none")
+					return
+				}
+				if tt.errType != nil && err != tt.errType {
+					t.Errorf("Create() error = %v, want %v", err, tt.errType)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Create() unexpected error = %v", err)
+				return
+			}
+
+			// Verify user was created
+			savedUser, err := repo.GetByID(ctx, tt.user.ID)
+			if err != nil {
+				t.Errorf("Failed to retrieve created user: %v", err)
+				return
+			}
+
+			if savedUser.Email != tt.user.Email {
+				t.Errorf("Create() saved email = %v, want %v", savedUser.Email, tt.user.Email)
+			}
+		})
+	}
+}
+
+func TestUserRepository_GetByEmail(t *testing.T) {
+	repo := NewUserRepository(testDB)
+	ctx := context.Background()
+
+	// Setup test user
+	testUser, _ := domain.NewUser("getbyemail@example.com", "password123")
+
+	tests := []struct {
+		name    string
+		email   string
+		wantErr bool
+		errType error
+		setup   func()
+	}{
+		{
+			name:    "existing user",
+			email:   "getbyemail@example.com",
+			wantErr: false,
+			setup: func() {
+				cleanupDatabase(t)
+				repo.Create(ctx, testUser)
+			},
+		},
+		{
+			name:    "non-existent user",
+			email:   "nonexistent@example.com",
+			wantErr: true,
+			errType: domain.ErrUserNotFound,
+			setup:   func() { cleanupDatabase(t) },
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+
+			user, err := repo.GetByEmail(ctx, tt.email)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Error("GetByEmail() expected error but got none")
+					return
+				}
+				if tt.errType != nil && err != tt.errType {
+					t.Errorf("GetByEmail() error = %v, want %v", err, tt.errType)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("GetByEmail() unexpected error = %v", err)
+				return
+			}
+
+			if user.Email != tt.email {
+				t.Errorf("GetByEmail() email = %v, want %v", user.Email, tt.email)
+			}
+		})
+	}
+}
+
+func TestUserRepository_GetByID(t *testing.T) {
+	repo := NewUserRepository(testDB)
+	ctx := context.Background()
+
+	// Setup test user
+	testUser, _ := domain.NewUser("getbyid@example.com", "password123")
+
+	tests := []struct {
+		name    string
+		id      string
+		wantErr bool
+		errType error
+		setup   func()
+	}{
+		{
+			name:    "existing user",
+			id:      testUser.ID,
+			wantErr: false,
+			setup: func() {
+				cleanupDatabase(t)
+				repo.Create(ctx, testUser)
+			},
+		},
+		{
+			name:    "non-existent user",
+			id:      "00000000-0000-0000-0000-000000000000",
+			wantErr: true,
+			errType: domain.ErrUserNotFound,
+			setup:   func() { cleanupDatabase(t) },
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+
+			user, err := repo.GetByID(ctx, tt.id)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Error("GetByID() expected error but got none")
+					return
+				}
+				if tt.errType != nil && err != tt.errType {
+					t.Errorf("GetByID() error = %v, want %v", err, tt.errType)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("GetByID() unexpected error = %v", err)
+				return
+			}
+
+			if user.ID != tt.id {
+				t.Errorf("GetByID() id = %v, want %v", user.ID, tt.id)
+			}
+		})
+	}
+}
+
+func TestUserRepository_Update(t *testing.T) {
+	repo := NewUserRepository(testDB)
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		update  func(*domain.User)
+		wantErr bool
+		errType error
+		setup   func() *domain.User
+	}{
+		{
+			name: "successful update",
+			update: func(u *domain.User) {
+				u.UpdateEmail("updated@example.com")
+			},
+			wantErr: false,
+			setup: func() *domain.User {
+				cleanupDatabase(t)
+				u, _ := domain.NewUser("original@example.com", "password123")
+				repo.Create(ctx, u)
+				return u
+			},
+		},
+		{
+			name: "update non-existent user",
+			update: func(u *domain.User) {
+				u.UpdateEmail("updated@example.com")
+			},
+			wantErr: true,
+			errType: domain.ErrUserNotFound,
+			setup: func() *domain.User {
+				cleanupDatabase(t)
+				u, _ := domain.NewUser("ghost@example.com", "password123")
+				u.ID = "00000000-0000-0000-0000-000000000000"
+				return u
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			user := tt.setup()
+			tt.update(user)
+
+			err := repo.Update(ctx, user)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Error("Update() expected error but got none")
+					return
+				}
+				if tt.errType != nil && err != tt.errType {
+					t.Errorf("Update() error = %v, want %v", err, tt.errType)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Update() unexpected error = %v", err)
+				return
+			}
+
+			// Verify update was saved
+			updatedUser, err := repo.GetByID(ctx, user.ID)
+			if err != nil {
+				t.Errorf("Failed to retrieve updated user: %v", err)
+				return
+			}
+
+			if updatedUser.Email != user.Email {
+				t.Errorf("Update() email not updated: got %v, want %v", updatedUser.Email, user.Email)
+			}
+		})
+	}
+}
+
+func TestUserRepository_Delete(t *testing.T) {
+	repo := NewUserRepository(testDB)
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		id      string
+		wantErr bool
+		errType error
+		setup   func() string
+	}{
+		{
+			name:    "successful delete",
+			wantErr: false,
+			setup: func() string {
+				cleanupDatabase(t)
+				u, _ := domain.NewUser("delete@example.com", "password123")
+				repo.Create(ctx, u)
+				return u.ID
+			},
+		},
+		{
+			name:    "delete non-existent user",
+			wantErr: true,
+			errType: domain.ErrUserNotFound,
+			setup: func() string {
+				cleanupDatabase(t)
+				return "00000000-0000-0000-0000-000000000000"
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			id := tt.setup()
+
+			err := repo.Delete(ctx, id)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Error("Delete() expected error but got none")
+					return
+				}
+				if tt.errType != nil && err != tt.errType {
+					t.Errorf("Delete() error = %v, want %v", err, tt.errType)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Delete() unexpected error = %v", err)
+				return
+			}
+
+			// Verify user was deleted
+			_, err = repo.GetByID(ctx, id)
+			if err != domain.ErrUserNotFound {
+				t.Error("Delete() user should not exist after deletion")
+			}
+		})
+	}
+}
+
+func TestUserRepository_ConcurrentCreate(t *testing.T) {
+	repo := NewUserRepository(testDB)
+	ctx := context.Background()
+	cleanupDatabase(t)
+
+	// Test concurrent creation with same email
+	email := "concurrent@example.com"
+	results := make(chan error, 2)
+
+	for i := 0; i < 2; i++ {
+		go func(idx int) {
+			u, _ := domain.NewUser(email, fmt.Sprintf("password%d", idx))
+			results <- repo.Create(ctx, u)
+		}(i)
+	}
+
+	var successCount, duplicateCount int
+	for i := 0; i < 2; i++ {
+		err := <-results
+		if err == nil {
+			successCount++
+		} else if err == domain.ErrUserAlreadyExists {
+			duplicateCount++
+		} else {
+			t.Errorf("Unexpected error: %v", err)
+		}
+	}
+
+	if successCount != 1 {
+		t.Errorf("Expected exactly 1 successful creation, got %d", successCount)
+	}
+	if duplicateCount != 1 {
+		t.Errorf("Expected exactly 1 duplicate error, got %d", duplicateCount)
+	}
+}

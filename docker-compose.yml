@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: thappy-postgres
+    environment:
+      POSTGRES_USER: thappy
+      POSTGRES_PASSWORD: thappy_dev_password
+      POSTGRES_DB: thappy
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - thappy-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U thappy -d thappy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ message broker
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: thappy-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: thappy
+      RABBITMQ_DEFAULT_PASS: thappy_dev_password
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - thappy-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Application server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: thappy-api
+    environment:
+      # Server configuration
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8080
+      
+      # Database configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: thappy
+      DB_PASSWORD: thappy_dev_password
+      DB_NAME: thappy
+      DB_SSLMODE: disable
+      
+      # RabbitMQ configuration
+      RABBITMQ_URL: amqp://thappy:thappy_dev_password@rabbitmq:5672/
+      
+      # Authentication configuration
+      JWT_SECRET: thappy-dev-secret-change-in-production
+      JWT_TOKEN_TTL: 24h
+      
+      # Application configuration
+      APP_NAME: thappy
+      APP_VERSION: 1.0.0
+      APP_ENV: development
+      LOG_LEVEL: debug
+      DEBUG: true
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - thappy-network
+    restart: unless-stopped
+
+  # Database migrations (runs once)
+  migrate:
+    image: migrate/migrate
+    container_name: thappy-migrate
+    volumes:
+      - ./migrations:/migrations:Z
+    networks:
+      - thappy-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: [
+      "-path", "/migrations",
+      "-database", "postgres://thappy:thappy_dev_password@postgres:5432/thappy?sslmode=disable",
+      "up"
+    ]
+
+# Networks
+networks:
+  thappy-network:
+    driver: bridge
+    name: thappy-network
+
+# Volumes
+volumes:
+  postgres_data:
+    driver: local
+    name: thappy-postgres-data
+  rabbitmq_data:
+    driver: local
+    name: thappy-rabbitmq-data
