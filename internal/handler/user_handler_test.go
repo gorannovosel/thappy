@@ -89,6 +89,117 @@ func (m *MockUserService) UpdateUser(ctx context.Context, user *userDomain.User)
 	return nil
 }
 
+func (m *MockUserService) RegisterWithRole(ctx context.Context, email, password string, role userDomain.UserRole) (*userDomain.User, error) {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return nil, m.failError
+	}
+
+	user, err := userDomain.NewUserWithRole(email, password, role)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if user already exists
+	for _, u := range m.users {
+		if u.Email == email {
+			return nil, userDomain.ErrUserAlreadyExists
+		}
+	}
+
+	m.users[user.ID] = user
+	return user, nil
+}
+
+func (m *MockUserService) GetUserByEmail(ctx context.Context, email string) (*userDomain.User, error) {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return nil, m.failError
+	}
+
+	for _, user := range m.users {
+		if user.Email == email {
+			return user, nil
+		}
+	}
+	return nil, userDomain.ErrUserNotFound
+}
+
+func (m *MockUserService) GetUsersByRole(ctx context.Context, role userDomain.UserRole) ([]*userDomain.User, error) {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return nil, m.failError
+	}
+
+	var users []*userDomain.User
+	for _, user := range m.users {
+		if user.Role == role {
+			users = append(users, user)
+		}
+	}
+	return users, nil
+}
+
+func (m *MockUserService) GetActiveUsers(ctx context.Context) ([]*userDomain.User, error) {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return nil, m.failError
+	}
+
+	var users []*userDomain.User
+	for _, user := range m.users {
+		if user.IsActive {
+			users = append(users, user)
+		}
+	}
+	return users, nil
+}
+
+func (m *MockUserService) GetActiveUsersByRole(ctx context.Context, role userDomain.UserRole) ([]*userDomain.User, error) {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return nil, m.failError
+	}
+
+	var users []*userDomain.User
+	for _, user := range m.users {
+		if user.Role == role && user.IsActive {
+			users = append(users, user)
+		}
+	}
+	return users, nil
+}
+
+func (m *MockUserService) DeactivateUser(ctx context.Context, userID string) error {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return m.failError
+	}
+
+	user, exists := m.users[userID]
+	if !exists {
+		return userDomain.ErrUserNotFound
+	}
+
+	user.SetActive(false)
+	return nil
+}
+
+func (m *MockUserService) ActivateUser(ctx context.Context, userID string) error {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return m.failError
+	}
+
+	user, exists := m.users[userID]
+	if !exists {
+		return userDomain.ErrUserNotFound
+	}
+
+	user.SetActive(true)
+	return nil
+}
+
 func (m *MockUserService) SetNextError(err error) {
 	m.shouldFailNext = true
 	m.failError = err

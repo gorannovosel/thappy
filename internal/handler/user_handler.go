@@ -45,6 +45,32 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	h.writeJSONResponse(w, http.StatusCreated, response)
 }
 
+func (h *UserHandler) RegisterWithRole(w http.ResponseWriter, r *http.Request) {
+	var req RegisterWithRoleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.writeErrorResponse(w, http.StatusBadRequest, ErrInvalidJSON.Error())
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		h.writeErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	user, err := h.userService.RegisterWithRole(r.Context(), req.Email, req.Password, req.Role)
+	if err != nil {
+		h.handleServiceError(w, err)
+		return
+	}
+
+	response := RegisterResponse{
+		User:    ToUserResponse(user),
+		Message: "User registered successfully",
+	}
+
+	h.writeJSONResponse(w, http.StatusCreated, response)
+}
+
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

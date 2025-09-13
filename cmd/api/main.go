@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	httputil "github.com/goran/thappy/internal/handler/http"
 	"github.com/goran/thappy/internal/infrastructure/container"
 )
 
@@ -68,66 +66,6 @@ func main() {
 
 // setupRoutes configures all HTTP routes and middleware
 func setupRoutes(container *container.Container) http.Handler {
-	mux := http.NewServeMux()
-
-	// Health check endpoint
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		// Perform health checks
-		if err := container.HealthCheck(); err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			fmt.Fprintf(w, `{"status":"unhealthy","error":"%s"}`, err.Error())
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"status":"healthy","service":"%s","version":"%s"}`,
-			container.Config.App.Name,
-			container.Config.App.Version,
-		)
-	})
-
-	// Public endpoints (no authentication required)
-	mux.Handle("/api/register", applyMiddleware(
-		http.HandlerFunc(container.UserHandler.Register),
-		httputil.JSONMiddleware,
-	))
-
-	mux.Handle("/api/login", applyMiddleware(
-		http.HandlerFunc(container.UserHandler.Login),
-		httputil.JSONMiddleware,
-	))
-
-	// Protected endpoints (authentication required)
-	mux.Handle("/api/profile", applyMiddleware(
-		http.HandlerFunc(container.UserHandler.GetProfile),
-		container.AuthMiddleware.RequireAuth,
-	))
-
-	mux.Handle("/api/profile/update", applyMiddleware(
-		http.HandlerFunc(container.UserHandler.UpdateProfile),
-		httputil.JSONMiddleware,
-		container.AuthMiddleware.RequireAuth,
-	))
-
-	// Apply global middleware
-	return applyMiddleware(
-		mux,
-		httputil.CORSMiddleware,
-		httputil.LoggingMiddleware,
-	)
-}
-
-// applyMiddleware applies middleware functions in reverse order (last middleware wraps first)
-func applyMiddleware(handler http.Handler, middlewares ...func(http.Handler) http.Handler) http.Handler {
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		handler = middlewares[i](handler)
-	}
-	return handler
+	// Use the router from the container which has all the new endpoints
+	return container.Router.SetupRoutes()
 }

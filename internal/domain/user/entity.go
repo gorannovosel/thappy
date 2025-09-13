@@ -9,10 +9,19 @@ import (
 	"time"
 )
 
+type UserRole string
+
+const (
+	RoleClient    UserRole = "client"
+	RoleTherapist UserRole = "therapist"
+)
+
 type User struct {
 	ID           string
 	Email        string
 	PasswordHash string
+	Role         UserRole
+	IsActive     bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -36,6 +45,8 @@ func NewUser(email, password string) (*User, error) {
 		ID:           generateID(),
 		Email:        strings.ToLower(strings.TrimSpace(email)),
 		PasswordHash: hashedPassword,
+		Role:         RoleClient,
+		IsActive:     true,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}, nil
@@ -115,4 +126,63 @@ func generateID() string {
 		return hex.EncodeToString([]byte(time.Now().String()))
 	}
 	return hex.EncodeToString(bytes)
+}
+
+func NewUserWithRole(email, password string, role UserRole) (*User, error) {
+	if err := validateEmail(email); err != nil {
+		return nil, err
+	}
+
+	if err := validatePassword(password); err != nil {
+		return nil, err
+	}
+
+	if err := validateRole(role); err != nil {
+		return nil, err
+	}
+
+	hashedPassword, err := hashPassword(password)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	return &User{
+		ID:           generateID(),
+		Email:        strings.ToLower(strings.TrimSpace(email)),
+		PasswordHash: hashedPassword,
+		Role:         role,
+		IsActive:     true,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}, nil
+}
+
+func (u *User) HasRole(role UserRole) bool {
+	return u.Role == role
+}
+
+func (u *User) IsClient() bool {
+	return u.Role == RoleClient
+}
+
+func (u *User) IsTherapist() bool {
+	return u.Role == RoleTherapist
+}
+
+func (u *User) SetActive(active bool) {
+	u.IsActive = active
+	u.UpdatedAt = time.Now()
+}
+
+func validateRole(role UserRole) error {
+	if role == "" {
+		return errors.New("role is required")
+	}
+
+	if role != RoleClient && role != RoleTherapist {
+		return errors.New("invalid user role")
+	}
+
+	return nil
 }

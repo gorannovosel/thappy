@@ -66,4 +66,5 @@ tmp/
 test/curl/tokens.txt
 
 # OS generated files
-Thumbs.db
+Thumbs.dbbin/
+api

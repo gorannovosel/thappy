@@ -5,14 +5,21 @@ import (
 	"fmt"
 	"time"
 
+	clientDomain "github.com/goran/thappy/internal/domain/client"
+	therapistDomain "github.com/goran/thappy/internal/domain/therapist"
 	"github.com/goran/thappy/internal/domain/user"
+	"github.com/goran/thappy/internal/handler"
 	httputil "github.com/goran/thappy/internal/handler/http"
 	userHandler "github.com/goran/thappy/internal/handler/user"
 	"github.com/goran/thappy/internal/infrastructure/config"
 	"github.com/goran/thappy/internal/infrastructure/database"
 	"github.com/goran/thappy/internal/infrastructure/messaging"
+	clientRepository "github.com/goran/thappy/internal/repository/client/postgres"
+	therapistRepository "github.com/goran/thappy/internal/repository/therapist/postgres"
 	userRepository "github.com/goran/thappy/internal/repository/user/postgres"
 	authService "github.com/goran/thappy/internal/service/auth"
+	clientService "github.com/goran/thappy/internal/service/client"
+	therapistService "github.com/goran/thappy/internal/service/therapist"
 	userService "github.com/goran/thappy/internal/service/user"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -26,14 +33,19 @@ type Container struct {
 	RabbitMQ *messaging.RabbitMQConnection
 
 	// Services
-	UserService  user.UserService
-	TokenService user.TokenService
+	UserService      user.UserService
+	TokenService     user.TokenService
+	ClientService    clientDomain.ClientService
+	TherapistService therapistDomain.TherapistService
 
 	// Repositories
-	UserRepository user.UserRepository
+	UserRepository      user.UserRepository
+	ClientRepository    clientDomain.ClientRepository
+	TherapistRepository therapistDomain.TherapistRepository
 
 	// Handlers
 	UserHandler    *userHandler.Handler
+	Router         *handler.Router
 	AuthMiddleware *httputil.AuthMiddleware
 
 	// HTTP utilities
@@ -103,6 +115,12 @@ func (c *Container) initRepositories() error {
 	// User repository
 	c.UserRepository = userRepository.NewUserRepository(c.DB)
 
+	// Client repository
+	c.ClientRepository = clientRepository.NewClientRepository(c.DB)
+
+	// Therapist repository
+	c.TherapistRepository = therapistRepository.NewTherapistRepository(c.DB)
+
 	return nil
 }
 
@@ -118,6 +136,18 @@ func (c *Container) initServices() error {
 	c.UserService = userService.NewUserService(
 		c.UserRepository,
 		c.TokenService,
+	)
+
+	// Client service
+	c.ClientService = clientService.NewClientService(
+		c.ClientRepository,
+		c.UserRepository,
+	)
+
+	// Therapist service
+	c.TherapistService = therapistService.NewTherapistService(
+		c.TherapistRepository,
+		c.UserRepository,
 	)
 
 	return nil
@@ -137,6 +167,14 @@ func (c *Container) initHandlers() error {
 
 	// User handler
 	c.UserHandler = userHandler.NewHandler(c.UserService)
+
+	// Router with all handlers
+	c.Router = handler.NewRouter(
+		c.UserService,
+		c.ClientService,
+		c.TherapistService,
+		c.TokenService,
+	)
 
 	return nil
 }

@@ -267,3 +267,254 @@ func TestUser_UpdatePassword(t *testing.T) {
 		})
 	}
 }
+
+func TestNewUserWithRole(t *testing.T) {
+	tests := []struct {
+		name      string
+		email     string
+		password  string
+		role      UserRole
+		wantErr   bool
+		errString string
+	}{
+		{
+			name:     "valid client user creation",
+			email:    "client@example.com",
+			password: "SecurePass123!",
+			role:     RoleClient,
+			wantErr:  false,
+		},
+		{
+			name:     "valid therapist user creation",
+			email:    "therapist@example.com",
+			password: "SecurePass123!",
+			role:     RoleTherapist,
+			wantErr:  false,
+		},
+		{
+			name:      "invalid role",
+			email:     "user@example.com",
+			password:  "SecurePass123!",
+			role:      UserRole("invalid"),
+			wantErr:   true,
+			errString: "invalid user role",
+		},
+		{
+			name:      "empty role",
+			email:     "user@example.com",
+			password:  "SecurePass123!",
+			role:      UserRole(""),
+			wantErr:   true,
+			errString: "role is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			user, err := NewUserWithRole(tt.email, tt.password, tt.role)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("NewUserWithRole() expected error but got none")
+					return
+				}
+				if err.Error() != tt.errString {
+					t.Errorf("NewUserWithRole() error = %v, want %v", err.Error(), tt.errString)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("NewUserWithRole() unexpected error = %v", err)
+				return
+			}
+
+			if user.Role != tt.role {
+				t.Errorf("NewUserWithRole() role = %v, want %v", user.Role, tt.role)
+			}
+
+			if !user.IsActive {
+				t.Error("NewUserWithRole() user should be active by default")
+			}
+
+			if user.Email != tt.email {
+				t.Errorf("NewUserWithRole() email = %v, want %v", user.Email, tt.email)
+			}
+
+			if user.ID == "" {
+				t.Error("NewUserWithRole() ID should not be empty")
+			}
+		})
+	}
+}
+
+func TestUser_HasRole(t *testing.T) {
+	client, err := NewUserWithRole("client@example.com", "SecurePass123!", RoleClient)
+	if err != nil {
+		t.Fatalf("Failed to create client user: %v", err)
+	}
+
+	therapist, err := NewUserWithRole("therapist@example.com", "SecurePass123!", RoleTherapist)
+	if err != nil {
+		t.Fatalf("Failed to create therapist user: %v", err)
+	}
+
+	tests := []struct {
+		name string
+		user *User
+		role UserRole
+		want bool
+	}{
+		{
+			name: "client has client role",
+			user: client,
+			role: RoleClient,
+			want: true,
+		},
+		{
+			name: "client does not have therapist role",
+			user: client,
+			role: RoleTherapist,
+			want: false,
+		},
+		{
+			name: "therapist has therapist role",
+			user: therapist,
+			role: RoleTherapist,
+			want: true,
+		},
+		{
+			name: "therapist does not have client role",
+			user: therapist,
+			role: RoleClient,
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.user.HasRole(tt.role); got != tt.want {
+				t.Errorf("HasRole() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUser_IsClient(t *testing.T) {
+	client, err := NewUserWithRole("client@example.com", "SecurePass123!", RoleClient)
+	if err != nil {
+		t.Fatalf("Failed to create client user: %v", err)
+	}
+
+	therapist, err := NewUserWithRole("therapist@example.com", "SecurePass123!", RoleTherapist)
+	if err != nil {
+		t.Fatalf("Failed to create therapist user: %v", err)
+	}
+
+	if !client.IsClient() {
+		t.Error("IsClient() should return true for client user")
+	}
+
+	if therapist.IsClient() {
+		t.Error("IsClient() should return false for therapist user")
+	}
+}
+
+func TestUser_IsTherapist(t *testing.T) {
+	client, err := NewUserWithRole("client@example.com", "SecurePass123!", RoleClient)
+	if err != nil {
+		t.Fatalf("Failed to create client user: %v", err)
+	}
+
+	therapist, err := NewUserWithRole("therapist@example.com", "SecurePass123!", RoleTherapist)
+	if err != nil {
+		t.Fatalf("Failed to create therapist user: %v", err)
+	}
+
+	if client.IsTherapist() {
+		t.Error("IsTherapist() should return false for client user")
+	}
+
+	if !therapist.IsTherapist() {
+		t.Error("IsTherapist() should return true for therapist user")
+	}
+}
+
+func TestUser_SetActive(t *testing.T) {
+	user, err := NewUserWithRole("user@example.com", "SecurePass123!", RoleClient)
+	if err != nil {
+		t.Fatalf("Failed to create user: %v", err)
+	}
+
+	oldUpdatedAt := user.UpdatedAt
+	time.Sleep(10 * time.Millisecond)
+
+	user.SetActive(false)
+
+	if user.IsActive {
+		t.Error("SetActive(false) should deactivate user")
+	}
+
+	if !user.UpdatedAt.After(oldUpdatedAt) {
+		t.Error("SetActive() should update UpdatedAt timestamp")
+	}
+
+	user.SetActive(true)
+
+	if !user.IsActive {
+		t.Error("SetActive(true) should activate user")
+	}
+}
+
+func TestValidateRole(t *testing.T) {
+	tests := []struct {
+		name      string
+		role      UserRole
+		wantErr   bool
+		errString string
+	}{
+		{
+			name:    "valid client role",
+			role:    RoleClient,
+			wantErr: false,
+		},
+		{
+			name:    "valid therapist role",
+			role:    RoleTherapist,
+			wantErr: false,
+		},
+		{
+			name:      "invalid role",
+			role:      UserRole("invalid"),
+			wantErr:   true,
+			errString: "invalid user role",
+		},
+		{
+			name:      "empty role",
+			role:      UserRole(""),
+			wantErr:   true,
+			errString: "role is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateRole(tt.role)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("validateRole() expected error but got none")
+					return
+				}
+				if err.Error() != tt.errString {
+					t.Errorf("validateRole() error = %v, want %v", err.Error(), tt.errString)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("validateRole() unexpected error = %v", err)
+			}
+		})
+	}
+}

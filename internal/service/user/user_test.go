@@ -98,6 +98,61 @@ func (m *MockUserRepository) Delete(ctx context.Context, id string) error {
 	return userDomain.ErrUserNotFound
 }
 
+func (m *MockUserRepository) GetByRole(ctx context.Context, role userDomain.UserRole) ([]*userDomain.User, error) {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return nil, m.failError
+	}
+
+	var users []*userDomain.User
+	for _, user := range m.users {
+		if user.Role == role {
+			users = append(users, user)
+		}
+	}
+	return users, nil
+}
+
+func (m *MockUserRepository) GetActiveUsers(ctx context.Context) ([]*userDomain.User, error) {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return nil, m.failError
+	}
+
+	var users []*userDomain.User
+	for _, user := range m.users {
+		if user.IsActive {
+			users = append(users, user)
+		}
+	}
+	return users, nil
+}
+
+func (m *MockUserRepository) GetActiveUsersByRole(ctx context.Context, role userDomain.UserRole) ([]*userDomain.User, error) {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return nil, m.failError
+	}
+
+	var users []*userDomain.User
+	for _, user := range m.users {
+		if user.Role == role && user.IsActive {
+			users = append(users, user)
+		}
+	}
+	return users, nil
+}
+
+func (m *MockUserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
+	if m.shouldFailNext {
+		m.shouldFailNext = false
+		return false, m.failError
+	}
+
+	_, exists := m.emailIndex[email]
+	return exists, nil
+}
+
 func (m *MockUserRepository) SetNextError(err error) {
 	m.shouldFailNext = true
 	m.failError = err

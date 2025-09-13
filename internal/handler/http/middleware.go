@@ -72,6 +72,60 @@ func (m *AuthMiddleware) OptionalAuth(next http.Handler) http.Handler {
 	})
 }
 
+func (m *AuthMiddleware) RequireRole(role user.UserRole) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token := m.extractTokenFromHeader(r)
+			if token == "" {
+				writeErrorResponse(w, http.StatusUnauthorized, "Authorization header required")
+				return
+			}
+
+			userID, err := m.tokenService.ValidateToken(token)
+			if err != nil {
+				m.handleTokenError(w, err)
+				return
+			}
+
+			// Verify user still exists and has the required role
+			currentUser, err := m.userService.GetUserByID(r.Context(), userID)
+			if err != nil {
+				if err == user.ErrUserNotFound {
+					writeErrorResponse(w, http.StatusUnauthorized, "User not found")
+					return
+				}
+				writeErrorResponse(w, http.StatusInternalServerError, "Internal server error")
+				return
+			}
+
+			// Check if user has the required role
+			if currentUser.Role != role {
+				writeErrorResponse(w, http.StatusForbidden, "Insufficient privileges")
+				return
+			}
+
+			// Check if user is active
+			if !currentUser.IsActive {
+				writeErrorResponse(w, http.StatusForbidden, "Account is not active")
+				return
+			}
+
+			// Add user ID and role to request context
+			ctx := context.WithValue(r.Context(), "userID", userID)
+			ctx = context.WithValue(ctx, "userRole", role)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func (m *AuthMiddleware) RequireClientRole(next http.Handler) http.Handler {
+	return m.RequireRole(user.RoleClient)(next)
+}
+
+func (m *AuthMiddleware) RequireTherapistRole(next http.Handler) http.Handler {
+	return m.RequireRole(user.RoleTherapist)(next)
+}
+
 func (m *AuthMiddleware) extractTokenFromHeader(r *http.Request) string {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {

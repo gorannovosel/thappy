@@ -21,20 +21,25 @@ func NewUserService(repo user.UserRepository, tokenService user.TokenService) *U
 }
 
 func (s *UserService) Register(ctx context.Context, email, password string) (*user.User, error) {
+	// Default to client role for backward compatibility
+	return s.RegisterWithRole(ctx, email, password, user.RoleClient)
+}
+
+func (s *UserService) RegisterWithRole(ctx context.Context, email, password string, role user.UserRole) (*user.User, error) {
 	// Normalize email
 	email = strings.ToLower(strings.TrimSpace(email))
 
 	// Check if user already exists
-	existingUser, err := s.repo.GetByEmail(ctx, email)
-	if err != nil && !errors.Is(err, user.ErrUserNotFound) {
+	exists, err := s.repo.ExistsByEmail(ctx, email)
+	if err != nil {
 		return nil, err
 	}
-	if existingUser != nil {
+	if exists {
 		return nil, user.ErrUserAlreadyExists
 	}
 
-	// Create new user
-	userEntity, err := user.NewUser(email, password)
+	// Create new user with role
+	userEntity, err := user.NewUserWithRole(email, password, role)
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +83,45 @@ func (s *UserService) GetUserByID(ctx context.Context, id string) (*user.User, e
 	return s.repo.GetByID(ctx, id)
 }
 
+func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*user.User, error) {
+	email = strings.ToLower(strings.TrimSpace(email))
+	return s.repo.GetByEmail(ctx, email)
+}
+
 func (s *UserService) UpdateUser(ctx context.Context, userEntity *user.User) error {
+	return s.repo.Update(ctx, userEntity)
+}
+
+func (s *UserService) GetUsersByRole(ctx context.Context, role user.UserRole) ([]*user.User, error) {
+	return s.repo.GetByRole(ctx, role)
+}
+
+func (s *UserService) GetActiveUsers(ctx context.Context) ([]*user.User, error) {
+	return s.repo.GetActiveUsers(ctx)
+}
+
+func (s *UserService) GetActiveUsersByRole(ctx context.Context, role user.UserRole) ([]*user.User, error) {
+	return s.repo.GetActiveUsersByRole(ctx, role)
+}
+
+func (s *UserService) DeactivateUser(ctx context.Context, userID string) error {
+	userEntity, err := s.repo.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	userEntity.SetActive(false)
+
+	return s.repo.Update(ctx, userEntity)
+}
+
+func (s *UserService) ActivateUser(ctx context.Context, userID string) error {
+	userEntity, err := s.repo.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	userEntity.SetActive(true)
+
 	return s.repo.Update(ctx, userEntity)
 }
