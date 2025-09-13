@@ -198,3 +198,39 @@ ci: format lint test
 all-tests: test
 	@echo "Running integration tests..."
 	$(GO) test -tags=integration ./test/integration/...
+
+## frontend-install: Install frontend dependencies
+.PHONY: frontend-install
+frontend-install:
+	cd frontend && npm install
+
+## frontend-dev: Start frontend development server
+.PHONY: frontend-dev
+frontend-dev:
+	cd frontend && npm start
+
+## frontend-build: Build frontend for production
+.PHONY: frontend-build
+frontend-build:
+	cd frontend && npm run build
+
+## frontend-test: Run frontend tests
+.PHONY: frontend-test
+frontend-test:
+	cd frontend && npm test -- --coverage --watchAll=false
+
+## dev-full: Start both backend and frontend
+.PHONY: dev-full
+dev-full:
+	make dev-detached
+	sleep 5
+	make frontend-dev
+
+## build-all: Build both backend and frontend
+.PHONY: build-all
+build-all: build frontend-build
+
+## clean-all: Clean both backend and frontend
+.PHONY: clean-all
+clean-all: clean
+	cd frontend && rm -rf node_modules build
