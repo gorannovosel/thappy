@@ -1,23 +1,30 @@
 # Documentation Index
 
-Complete documentation for the Thappy Authentication API project.
+Complete documentation for the Thappy full-stack therapy platform (Backend API + Frontend React App).
 
 ## 📚 Quick Navigation
 
 ### 🎯 Essential Docs
 - [**Main README**](../README.md) - Project overview and quick start
-- [**API Reference**](api/README.md) - Complete endpoint documentation
+- [**Backend API Reference**](api/README.md) - Complete endpoint documentation
+- [**Frontend Documentation**](frontend/README.md) - React TypeScript application
 - [**Development Setup**](development/setup.md) - Get up and running quickly
 
 ### 🛠️ Development
 - [**Setup Guide**](development/setup.md) - Local environment setup
 - [**Testing Guide**](development/testing.md) - Running and writing tests
 - [**Contributing**](development/contributing.md) - Code standards and workflow
+- [**Frontend Development**](frontend/development.md) - React development guide
 
-### 🔧 API Documentation
+### 🔧 Backend API Documentation
 - [**API Reference**](api/README.md) - HTTP endpoints and examples
 - [**Database Schema**](api/database.md) - Tables, relationships, migrations
 - [**Authentication Guide**](guides/authentication.md) - JWT implementation details
+
+### 🎨 Frontend Documentation
+- [**Frontend Overview**](frontend/README.md) - React TypeScript architecture
+- [**API Integration**](frontend/api-integration.md) - Frontend-backend integration
+- [**Component Development**](frontend/development.md) - React development patterns
 
 ### 🚀 Deployment & Operations
 - [**Configuration Management**](deployment/configuration.md) - Environment setup and secrets
@@ -31,14 +38,21 @@ Complete documentation for the Thappy Authentication API project.
 
 ## 📋 Documentation Categories
 
-### API & Usage
+### Backend API & Database
 | Document | Description | Audience |
 |----------|-------------|----------|
 | [API Reference](api/README.md) | Complete HTTP API documentation | Frontend developers, API consumers |
 | [Database Schema](api/database.md) | Database structure and migrations | Backend developers, DBAs |
 | [Authentication Guide](guides/authentication.md) | JWT implementation and security | All developers |
 
-### Development Workflow  
+### Frontend Application
+| Document | Description | Audience |
+|----------|-------------|----------|
+| [Frontend Overview](frontend/README.md) | React TypeScript architecture and setup | Frontend developers |
+| [API Integration](frontend/api-integration.md) | Frontend-backend communication patterns | Frontend developers |
+| [Component Development](frontend/development.md) | React development patterns and best practices | Frontend developers |
+
+### Development Workflow
 | Document | Description | Audience |
 |----------|-------------|----------|
 | [Development Setup](development/setup.md) | Local environment configuration | New developers |
@@ -61,21 +75,29 @@ Complete documentation for the Thappy Authentication API project.
 
 ## 🎯 Quick Start Guides
 
-### For New Developers
-1. [Development Setup](development/setup.md) - Set up your environment
-2. [API Reference](api/README.md) - Understand the API
-3. [Testing Guide](development/testing.md) - Run tests
-4. [Architecture Overview](architecture/overview.md) - Understand the design
+### For New Developers (Full Stack)
+1. [Development Setup](development/setup.md) - Set up backend and frontend
+2. [Frontend Overview](frontend/README.md) - Understand React application
+3. [API Reference](api/README.md) - Understand backend API
+4. [Architecture Overview](architecture/overview.md) - System design
 
-### For API Consumers  
-1. [API Reference](api/README.md) - Endpoint documentation
-2. [Authentication Guide](guides/authentication.md) - How to authenticate
-3. [Examples and Testing](../test/curl/) - Sample requests
+### For Frontend Developers
+1. [Frontend Development Guide](frontend/development.md) - React development setup
+2. [API Integration Guide](frontend/api-integration.md) - Connect to backend
+3. [Component Development](frontend/development.md#component-architecture) - Building components
+4. [Testing Frontend Code](frontend/development.md#testing-strategy) - Testing patterns
+
+### For Backend/API Developers
+1. [Development Setup](development/setup.md) - Backend environment setup
+2. [API Reference](api/README.md) - Endpoint documentation
+3. [Authentication Guide](guides/authentication.md) - JWT implementation
+4. [Database Schema](api/database.md) - Data models
 
 ### For DevOps Engineers
 1. [Configuration](deployment/configuration.md) - Environment setup
 2. [Docker Guide](deployment/docker.md) - Container deployment
 3. [Production](deployment/production.md) - Production deployment
+4. [Frontend Deployment](frontend/README.md#deployment) - React app deployment
 
 ## 📖 Document Types
 
@@ -236,12 +258,19 @@ make dev
 - **PlantUML**: For architecture diagrams (future)
 - **Swagger/OpenAPI**: For API documentation (future)
 
-### Related Resources
+### Backend Resources
 
 - [Go Documentation](https://golang.org/doc/) - Go language documentation
 - [PostgreSQL Docs](https://www.postgresql.org/docs/) - Database documentation
 - [Docker Docs](https://docs.docker.com/) - Container documentation
 - [JWT.io](https://jwt.io/) - JWT token information
+
+### Frontend Resources
+
+- [React Documentation](https://react.dev/) - React library documentation
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/) - TypeScript language guide
+- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) - Testing utilities
+- [CSS-Tricks](https://css-tricks.com/) - CSS and styling resources
 
 ---
 
