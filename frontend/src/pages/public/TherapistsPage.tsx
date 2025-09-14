@@ -3,6 +3,7 @@ import { TherapistProfile } from '../../types/api';
 import { therapistDiscoveryApi } from '../../services/therapistDiscovery';
 import TherapistCard from '../../components/public/TherapistCard';
 import styles from '../../styles/global.module.css';
+import Footer from '../../components/Footer';
 
 const TherapistsPage: React.FC = () => {
   const [therapists, setTherapists] = useState<TherapistProfile[]>([]);
@@ -308,6 +309,7 @@ const TherapistsPage: React.FC = () => {
         </>
       )}
       </div>
+      <Footer />
     </div>
   );
 };

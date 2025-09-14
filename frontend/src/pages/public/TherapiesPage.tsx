@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../../styles/global.module.css';
+import Footer from '../../components/Footer';
 
 interface TherapyType {
   id: string;
@@ -11,46 +12,46 @@ interface TherapyType {
 
 const therapyTypes: TherapyType[] = [
   {
-    id: 'logoped',
-    title: 'Logoped (Speech Therapy)',
+    id: 'psychological-testing',
+    title: 'Psychological Testing',
     description:
-      'Speech and language therapy helps children develop communication skills, improve speech clarity, and overcome language disorders.',
-    icon: '🗣️',
-  },
-  {
-    id: 'radna',
-    title: 'Radna terapija (Occupational Therapy)',
-    description:
-      'Occupational therapy focuses on developing daily living skills, fine motor skills, and helping children participate in everyday activities.',
-    icon: '✋',
-  },
-  {
-    id: 'edukacijsko-rehabilitacijski',
-    title: 'Edukacijsko-rehabilitacijski rad',
-    description:
-      'Educational rehabilitation work supports children with learning difficulties and developmental delays through specialized educational approaches.',
-    icon: '📚',
-  },
-  {
-    id: 'socijalna',
-    title: 'Socijalna terapija (Social Therapy)',
-    description:
-      'Social therapy helps children develop social skills, emotional regulation, and improve their interactions with others.',
-    icon: '👥',
-  },
-  {
-    id: 'psiholog',
-    title: 'Psihološka podrška (Psychology)',
-    description:
-      'Psychological support provides counseling and therapy for emotional, behavioral, and mental health concerns in children.',
+      'Autism • Learning differences • Giftedness and school readiness • Memory and cognitive skills',
     icon: '🧠',
   },
   {
-    id: 'fizio',
-    title: 'Fizioterapija (Physical Therapy)',
+    id: 'general-therapy',
+    title: 'General Therapy and Psychiatry',
     description:
-      'Physical therapy helps improve mobility, strength, balance, and gross motor skills through therapeutic exercises and activities.',
-    icon: '🏃',
+      'Persistent low mood, lack of motivation, withdrawal • Trauma and stress • Physical symptoms without an identified medical cause • Sustained difficulties with everyday tasks',
+    icon: '💜',
+  },
+  {
+    id: 'anxiety-program',
+    title: 'Anxiety Program',
+    description:
+      'Worries and fears, difficulty concentrating • Physical symptoms (like racing heart) • Feeling nervous, restless, edgy, afraid, or fearful • Avoidance of things they need or want to do',
+    icon: '💙',
+  },
+  {
+    id: 'ocd-program',
+    title: 'OCD Program',
+    description:
+      'Repeated or ritualized behaviors driven by anxiety, fear, or disgust • Overdoing things more than is needed • Fear of not doing something "just right" • Avoiding things they need or want to do • Intrusive thoughts about any number of topics',
+    icon: '🌊',
+  },
+  {
+    id: 'adhd-program',
+    title: 'ADHD Program',
+    description:
+      'Difficulties paying attention • Difficulty sitting still • Distracting or disruptive behaviors • Impulsive actions',
+    icon: '🧡',
+  },
+  {
+    id: 'disruptive-behaviors',
+    title: 'Disruptive Behaviors Program',
+    description:
+      'Tantrums and other behavioral upsets • Impulsive actions • Troubling behaviors at school or with friends • Difficulty following directions',
+    icon: '💚',
   },
 ];
 
@@ -111,54 +112,97 @@ const TherapiesPage: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: 'var(--spacing-xl)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '16px',
             marginBottom: 'var(--spacing-2xl)',
           }}
         >
           {therapyTypes.map((therapy, index) => {
-            const colors = ['#E6D536', '#7C3AED', '#A7E2E8'];
-            const backgroundColor = colors[index % 3];
-            const textColor = backgroundColor === '#7C3AED' ? 'white' : '#1f2937';
+            // Exact colors from Brightline design
+            const colorSchemes = [
+              { bg: '#F3D525', text: '#000000' },  // Yellow - Psychological Testing
+              { bg: '#5B3A89', text: '#FFFFFF' },  // Purple - General Therapy
+              { bg: '#9FD5D1', text: '#000000' },  // Mint - Anxiety Program
+              { bg: '#1D3F5F', text: '#FFFFFF' },  // Navy - OCD Program
+              { bg: '#EC8936', text: '#FFFFFF' },  // Orange - ADHD Program
+              { bg: '#457F6C', text: '#FFFFFF' },  // Teal Green - Disruptive Behaviors
+            ];
+
+            const colorScheme = colorSchemes[index % colorSchemes.length];
+            const backgroundColor = colorScheme.bg;
+            const textColor = colorScheme.text;
 
             return (
               <div
                 key={therapy.id}
                 style={{
                   backgroundColor,
-                  borderRadius: '12px',
-                  padding: 'var(--spacing-xl)',
+                  borderRadius: '6px',
+                  padding: '24px 20px',
                   color: textColor,
                   position: 'relative',
-                  minHeight: '280px',
+                  minHeight: '260px',
                   display: 'flex',
                   flexDirection: 'column',
+                  boxShadow: 'none',
+                  transition: 'transform 0.2s ease',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-                  <h2
-                    style={{
-                      fontSize: '1.5rem',
-                      fontWeight: '600',
-                      marginBottom: 'var(--spacing-md)',
-                      borderBottom: `2px solid ${textColor}`,
-                      paddingBottom: 'var(--spacing-xs)',
-                      display: 'inline-block',
-                    }}
-                  >
-                    {therapy.title}
-                  </h2>
-                </div>
-
-                <p
+                <h2
                   style={{
-                    marginBottom: 'var(--spacing-lg)',
-                    flexGrow: 1,
-                    lineHeight: '1.6'
+                    fontSize: '22px',
+                    fontWeight: '400',
+                    marginBottom: '8px',
+                    borderBottom: `1.5px solid ${textColor}`,
+                    paddingBottom: '8px',
+                    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+                    lineHeight: '1.2',
                   }}
                 >
-                  {therapy.description}
-                </p>
+                  {therapy.title}
+                </h2>
+
+                <ul
+                  style={{
+                    marginTop: '16px',
+                    marginBottom: '16px',
+                    flexGrow: 1,
+                    lineHeight: '1.5',
+                    paddingLeft: '16px',
+                    listStyle: 'none',
+                  }}
+                >
+                  {therapy.description.split(' • ').filter(s => s).map((item, idx) => (
+                    <li
+                      key={idx}
+                      style={{
+                        marginBottom: '8px',
+                        fontSize: '13px',
+                        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+                        fontWeight: '300',
+                        position: 'relative',
+                        paddingLeft: '12px'
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: '0.5em',
+                        width: '4px',
+                        height: '4px',
+                        backgroundColor: textColor,
+                        borderRadius: '50%',
+                      }}></span>
+                      {item.trim()}
+                    </li>
+                  ))}
+                </ul>
 
                 <Link
                   to={`/therapies/${therapy.id}`}
@@ -167,14 +211,21 @@ const TherapiesPage: React.FC = () => {
                     alignItems: 'center',
                     color: textColor,
                     textDecoration: 'none',
-                    fontWeight: '600',
-                    fontSize: '0.9rem',
+                    fontWeight: '400',
+                    fontSize: '11px',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
+                    letterSpacing: '0.06em',
                     marginTop: 'auto',
+                    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.opacity = '0.8';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.opacity = '1';
                   }}
                 >
-                  LEARN MORE & FIND THERAPISTS →
+                  {therapy.id.replace(/-/g, ' ').toUpperCase()} →
                 </Link>
               </div>
             );
@@ -250,6 +301,7 @@ const TherapiesPage: React.FC = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

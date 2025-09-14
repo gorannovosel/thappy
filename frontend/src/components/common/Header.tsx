@@ -90,7 +90,7 @@ const Header: React.FC = () => {
                 </Link>
 
                 <Link
-                  to="/topics"
+                  to="/articles"
                   style={{
                     textDecoration: 'none',
                     color: '#374151',
@@ -99,7 +99,7 @@ const Header: React.FC = () => {
                     padding: '0.5rem 0'
                   }}
                 >
-                  Topics
+                  Articles
                 </Link>
 
                 <Link

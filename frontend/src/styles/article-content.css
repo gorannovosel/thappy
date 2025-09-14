@@ -1,0 +1,45 @@
+.article-content h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin: var(--spacing-2xl) 0 var(--spacing-lg) 0;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.article-content h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: var(--spacing-xl) 0 var(--spacing-md) 0;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.article-content p {
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.8;
+}
+
+.article-content ul,
+.article-content ol {
+  margin-bottom: var(--spacing-lg);
+  padding-left: var(--spacing-xl);
+}
+
+.article-content li {
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.6;
+}
+
+.article-content strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.article-content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.article-content a:hover {
+  text-decoration: none;
+}

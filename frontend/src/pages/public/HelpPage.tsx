@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../../styles/global.module.css';
+import Footer from '../../components/Footer';
 
 const HelpPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -453,7 +454,7 @@ const HelpPage: React.FC = () => {
               Pregledaj terapije
             </Link>
             <Link
-              to="/topics"
+              to="/articles"
               style={{
                 textDecoration: 'none',
                 color: '#374151',
@@ -486,6 +487,7 @@ const HelpPage: React.FC = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

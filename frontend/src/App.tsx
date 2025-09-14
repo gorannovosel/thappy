@@ -11,7 +11,8 @@ import RegisterPage from './pages/auth/RegisterPage';
 import TherapistsPage from './pages/public/TherapistsPage';
 import TherapiesPage from './pages/public/TherapiesPage';
 import TherapyDetailPage from './pages/public/TherapyDetailPage';
-import TopicsPage from './pages/public/TopicsPage';
+import ArticlesPage from './pages/public/ArticlesPage';
+import ArticleDetailPage from './pages/public/ArticleDetailPage';
 import HelpPage from './pages/public/HelpPage';
 import ClientDashboard from './pages/client/ClientDashboard';
 import TherapistDashboard from './pages/therapist/TherapistDashboard';
@@ -42,7 +43,8 @@ function App() {
                   path="/therapies/:therapyId"
                   element={<TherapyDetailPage />}
                 />
-                <Route path="/topics" element={<TopicsPage />} />
+                <Route path="/articles" element={<ArticlesPage />} />
+                <Route path="/articles/:id" element={<ArticleDetailPage />} />
                 <Route path="/help" element={<HelpPage />} />
 
                 {/* Protected routes - general */}
