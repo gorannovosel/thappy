@@ -40,11 +40,11 @@ const Header: React.FC = () => {
   return (
     <header
       style={{
-        borderBottom: '1px solid var(--color-border)',
-        backgroundColor: 'var(--color-bg-primary)',
+        backgroundColor: 'white',
         position: 'sticky',
         top: 0,
         zIndex: 'var(--z-header)',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
       }}
     >
       <div className={styles.container}>
@@ -53,31 +53,102 @@ const Header: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: '64px',
+            height: '80px',
           }}
         >
           <Link
             to="/"
             style={{
-              fontSize: 'var(--font-size-xl)',
-              fontWeight: 'var(--font-weight-bold)',
-              color: 'var(--color-primary)',
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              color: '#f59e0b',
               textDecoration: 'none',
+              fontFamily: 'var(--font-family-display)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
             }}
           >
-            Thappy
+            thappy
+            <span style={{ color: '#0ea5e9', fontSize: '1.2rem' }}>✨</span>
           </Link>
 
           <nav>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                <Link
+                  to="/therapies"
+                  style={{
+                    textDecoration: 'none',
+                    color: '#374151',
+                    fontSize: 'var(--font-size-base)',
+                    fontWeight: '500',
+                    padding: '0.5rem 0'
+                  }}
+                >
+                  Therapies
+                </Link>
+
+                <Link
+                  to="/topics"
+                  style={{
+                    textDecoration: 'none',
+                    color: '#374151',
+                    fontSize: 'var(--font-size-base)',
+                    fontWeight: '500',
+                    padding: '0.5rem 0'
+                  }}
+                >
+                  Topics
+                </Link>
+
+                <Link
+                  to="/help"
+                  style={{
+                    textDecoration: 'none',
+                    color: '#374151',
+                    fontSize: 'var(--font-size-base)',
+                    fontWeight: '500',
+                    padding: '0.5rem 0'
+                  }}
+                >
+                  Ask for help
+                </Link>
+
+                <Link
+                  to="/therapists"
+                  style={{
+                    textDecoration: 'none',
+                    color: '#374151',
+                    fontSize: 'var(--font-size-base)',
+                    fontWeight: '500',
+                    padding: '0.5rem 0'
+                  }}
+                >
+                  Search
+                </Link>
+              </div>
+
+              {/* Call Button */}
               <Link
-                to="/therapists"
+                to="tel:+385-1-234-5678"
                 style={{
+                  backgroundColor: '#f59e0b',
+                  color: 'white',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
                   textDecoration: 'none',
-                  color: 'var(--color-text-secondary)',
+                  fontSize: 'var(--font-size-sm)',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease',
+                  border: 'none',
+                  cursor: 'pointer',
+                  marginRight: '1rem'
                 }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d97706'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f59e0b'}
               >
-                Find Therapists
+                Call +385 1 234 5678
               </Link>
 
               {isAuthenticated ? (
@@ -163,10 +234,36 @@ const Header: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <Link to="/login" className={styles.btnSecondary}>
+                  <Link
+                    to="/login"
+                    style={{
+                      textDecoration: 'none',
+                      color: '#374151',
+                      fontSize: 'var(--font-size-base)',
+                      fontWeight: '600',
+                      padding: '10px 20px',
+                      marginRight: '1rem'
+                    }}
+                  >
                     Sign In
                   </Link>
-                  <Link to="/register" className={styles.btnPrimary}>
+                  <Link
+                    to="/register"
+                    style={{
+                      backgroundColor: '#f59e0b',
+                      color: 'white',
+                      padding: '10px 20px',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      fontSize: 'var(--font-size-base)',
+                      fontWeight: '600',
+                      transition: 'all 0.2s ease',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d97706'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f59e0b'}
+                  >
                     Get Started
                   </Link>
                 </>

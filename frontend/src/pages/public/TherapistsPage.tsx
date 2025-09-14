@@ -63,122 +63,176 @@ const TherapistsPage: React.FC = () => {
   });
 
   return (
-    <div className={styles.container}>
-      <div className={styles.mb4}>
-        <h1 className={styles.mb3}>Find a Therapist</h1>
-        <p className={styles.mb4}>
-          Browse our network of licensed therapists currently accepting new
-          clients.
-        </p>
-      </div>
-
-      {/* Search and Filter Section */}
-      <div className={styles.card} style={{ marginBottom: '2rem' }}>
-        <div
-          style={{
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          }}
-        >
-          <div>
-            <label
-              htmlFor="search"
-              style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontWeight: '500',
-              }}
-            >
-              Search Therapists
-            </label>
-            <input
-              id="search"
-              type="text"
-              placeholder="Search by name, specialization, or bio..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+    <div>
+      <div className={styles.container}>
+        {/* Hero Section */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: 'var(--spacing-2xl)',
+          padding: 'var(--spacing-2xl) 0'
+        }}>
+          <div style={{
+            width: '200px',
+            height: '200px',
+            margin: '0 auto var(--spacing-lg) auto'
+          }}>
+            <img
+              src="/playtime.png"
+              alt="Child playing with toys"
               style={{
                 width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '1rem',
-                boxSizing: 'border-box',
+                height: '100%',
+                objectFit: 'contain'
               }}
             />
           </div>
-
-          <div>
-            <label
-              htmlFor="specialization"
-              style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontWeight: '500',
-              }}
-            >
-              Filter by Specialization
-            </label>
-            <select
-              id="specialization"
-              value={specializationFilter}
-              onChange={e => setSpecializationFilter(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '1rem',
-                boxSizing: 'border-box',
-              }}
-            >
-              <option value="">All Specializations</option>
-              {allSpecializations.map(spec => (
-                <option key={spec} value={spec}>
-                  {spec}
-                </option>
-              ))}
-            </select>
-          </div>
+          <h1 style={{
+            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+            fontWeight: '700',
+            lineHeight: '1.2',
+            marginBottom: 'var(--spacing-xl)',
+            color: '#1f2937',
+            fontFamily: 'var(--font-family-display)'
+          }}>
+            Find a Therapist
+          </h1>
+          <p style={{
+            fontSize: 'var(--font-size-lg)',
+            lineHeight: '1.6',
+            color: '#4b5563',
+            maxWidth: '600px',
+            margin: '0 auto'
+          }}>
+            Browse our network of licensed therapists currently accepting new
+            clients.
+          </p>
         </div>
 
-        {(searchTerm || specializationFilter) && (
-          <div
-            style={{
-              marginTop: '1rem',
+        {/* Search and Filter Section */}
+        <div style={{
+          backgroundColor: '#f9fafb',
+          borderRadius: '12px',
+          padding: 'var(--spacing-xl)',
+          marginBottom: 'var(--spacing-2xl)'
+        }}>
+          <div style={{
+            display: 'grid',
+            gap: 'var(--spacing-lg)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          }}>
+            <div>
+              <label
+                htmlFor="search"
+                style={{
+                  display: 'block',
+                  marginBottom: 'var(--spacing-sm)',
+                  fontWeight: '600',
+                  color: '#1f2937'
+                }}
+              >
+                Search Therapists
+              </label>
+              <input
+                id="search"
+                type="text"
+                placeholder="Search by name, specialization, or bio..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '2px solid var(--color-border)',
+                  borderRadius: '8px',
+                  fontSize: 'var(--font-size-base)',
+                  fontFamily: 'var(--font-family-primary)',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#f59e0b'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border)'}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="specialization"
+                style={{
+                  display: 'block',
+                  marginBottom: 'var(--spacing-sm)',
+                  fontWeight: '600',
+                  color: '#1f2937'
+                }}
+              >
+                Filter by Specialization
+              </label>
+              <select
+                id="specialization"
+                value={specializationFilter}
+                onChange={e => setSpecializationFilter(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '2px solid var(--color-border)',
+                  borderRadius: '8px',
+                  fontSize: 'var(--font-size-base)',
+                  fontFamily: 'var(--font-family-primary)',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  backgroundColor: 'white'
+                }}
+              >
+                <option value="">All Specializations</option>
+                {allSpecializations.map(spec => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {(searchTerm || specializationFilter) && (
+            <div style={{
+              marginTop: 'var(--spacing-lg)',
               display: 'flex',
-              gap: '0.5rem',
+              gap: 'var(--spacing-sm)',
               alignItems: 'center',
-            }}
-          >
-            <span
-              style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}
-            >
-              Showing {filteredTherapists.length} of {therapists.length}{' '}
-              therapists
-            </span>
-            {(searchTerm || specializationFilter) && (
+              flexWrap: 'wrap'
+            }}>
+              <span style={{
+                fontSize: 'var(--font-size-sm)',
+                color: '#4b5563'
+              }}>
+                Showing {filteredTherapists.length} of {therapists.length} therapists
+              </span>
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setSpecializationFilter('');
                 }}
                 style={{
-                  padding: '0.25rem 0.5rem',
-                  fontSize: '0.75rem',
-                  background: 'none',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
+                  padding: '6px 12px',
+                  fontSize: 'var(--font-size-sm)',
+                  backgroundColor: 'white',
+                  border: '2px solid var(--color-border)',
+                  borderRadius: '6px',
                   cursor: 'pointer',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = 'white';
                 }}
               >
                 Clear Filters
               </button>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
 
       {/* Loading State */}
       {loading && (
@@ -253,6 +307,7 @@ const TherapistsPage: React.FC = () => {
           )}
         </>
       )}
+      </div>
     </div>
   );
 };

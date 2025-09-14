@@ -47,7 +47,9 @@ export function useFormValidation<T extends Record<string, any>>(
 
   const validateField = useCallback(
     (fieldName: keyof T, value: string): string[] => {
-      const rules = validationRules && (validationRules as any)[fieldName] as ValidationRule[] | undefined;
+      const rules =
+        validationRules &&
+        ((validationRules as any)[fieldName] as ValidationRule[] | undefined);
       if (!rules) return [];
 
       const fieldErrors: string[] = [];
