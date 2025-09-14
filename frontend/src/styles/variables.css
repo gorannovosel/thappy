@@ -1,8 +1,8 @@
 :root {
   /* Colors */
-  --color-primary: #2563eb;
-  --color-primary-dark: #1d4ed8;
-  --color-primary-hover: #1d4ed8;
+  --color-primary: #f59e0b;
+  --color-primary-dark: #d97706;
+  --color-primary-hover: #d97706;
   --color-secondary: #64748b;
   --color-success: #10b981;
   --color-warning: #f59e0b;
@@ -26,7 +26,7 @@
   /* Border colors */
   --color-border: #e5e7eb;
   --color-border-light: #f3f4f6;
-  --color-border-focus: var(--color-primary);
+  --color-border-focus: #f59e0b;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);

@@ -197,7 +197,7 @@ This is a full-stack application with a **Go backend** providing REST APIs and a
 
 #### Styling Approach
 - **Modern Design**: Brightline-inspired clean interface with Inter font
-- **Color System**: Orange primary (`#f59e0b`) with semantic color tokens
+- **Color System**: Orange primary (`#f59e0b`) with consistent theming across all UI elements
 - **Layout**: CSS Grid and Flexbox for responsive layouts
 - **Typography**: Hierarchical font scales with proper line heights
 

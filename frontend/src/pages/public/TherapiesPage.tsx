@@ -58,48 +58,53 @@ const TherapiesPage: React.FC = () => {
   return (
     <div>
       <div className={styles.container}>
-        {/* Hero Section */}
+        {/* Header Section */}
         <div style={{
-          textAlign: 'center',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+          gap: 'var(--spacing-2xl)',
+          alignItems: 'center',
           marginBottom: 'var(--spacing-2xl)',
-          padding: 'var(--spacing-2xl) 0'
+          padding: 'var(--spacing-xl) 0'
         }}>
-          <div style={{
-            width: '200px',
-            height: '200px',
-            margin: '0 auto var(--spacing-lg) auto'
-          }}>
-            <img
-              src="/playtime.png"
-              alt="Child playing with toys"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain'
-              }}
-            />
+          {/* Left Content */}
+          <div>
+            <h1 style={{
+              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+              fontWeight: '700',
+              lineHeight: '1.2',
+              marginBottom: 'var(--spacing-lg)',
+              color: '#1f2937',
+              fontFamily: 'var(--font-family-display)'
+            }}>
+              Find Therapies for Your Child
+            </h1>
           </div>
-          <h1 style={{
-            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-            fontWeight: '700',
-            lineHeight: '1.2',
-            marginBottom: 'var(--spacing-xl)',
-            color: '#1f2937',
-            fontFamily: 'var(--font-family-display)'
+
+          {/* Right Image */}
+          <div style={{
+            textAlign: 'center',
+            padding: 'var(--spacing-lg)'
           }}>
-            Find Therapies for Your Child
-          </h1>
-          <p style={{
-            fontSize: 'var(--font-size-lg)',
-            lineHeight: '1.6',
-            color: '#4b5563',
-            maxWidth: '600px',
-            margin: '0 auto'
-          }}>
-            Discover the right therapy services to support your child's
-            development. Each therapy type offers specialized support for
-            different needs and challenges.
-          </p>
+            <div style={{
+              width: '250px',
+              height: '250px',
+              margin: '0 auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <img
+                src="/playtime.png"
+                alt="Child playing with toys"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Therapy Cards */}

@@ -124,48 +124,6 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Playtime Section */}
-        <div style={{
-          textAlign: 'center',
-          marginBottom: 'var(--spacing-2xl)',
-          padding: 'var(--spacing-2xl) 0'
-        }}>
-          <div style={{
-            width: '200px',
-            height: '200px',
-            margin: '0 auto var(--spacing-lg) auto'
-          }}>
-            <img
-              src="/playtime.png"
-              alt="Child playing with toys"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain'
-              }}
-            />
-          </div>
-          <h2 style={{
-            fontSize: 'var(--font-size-2xl)',
-            fontWeight: '600',
-            marginBottom: 'var(--spacing-md)',
-            color: '#1f2937',
-            fontFamily: 'var(--font-family-display)'
-          }}>
-            Play-Based Learning
-          </h2>
-          <p style={{
-            fontSize: 'var(--font-size-lg)',
-            color: '#4b5563',
-            maxWidth: '600px',
-            margin: '0 auto',
-            lineHeight: '1.6'
-          }}>
-            Our therapy approach incorporates play to make learning fun and engaging for children.
-            Through structured play activities, we help children develop essential skills naturally.
-          </p>
-        </div>
-
         {/* Three Main Sections */}
         <div
           style={{

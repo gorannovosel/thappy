@@ -115,31 +115,33 @@ const therapyDetails = {
 
 const TherapyDetailPage: React.FC = () => {
   const { therapyId } = useParams<{ therapyId: string }>();
-  const [therapists, setTherapists] = useState<TherapistProfile[]>([]);
+  // Remove backend dependency - show static content for now
+  const [showTherapists] = useState(false); // Set to false to avoid backend calls
 
   const therapyInfo = therapyId
     ? therapyDetails[therapyId as keyof typeof therapyDetails]
     : null;
 
-  const { data, loading, error, execute } = useAsync(async () => {
-    if (!therapyId) return [];
-    const response = await therapistDiscoveryApi.getAcceptingTherapists();
-    return response.therapists;
-  });
+  // Comment out API calls to avoid backend dependency
+  // const { data, loading, error, execute } = useAsync(async () => {
+  //   if (!therapyId) return [];
+  //   const response = await therapistDiscoveryApi.getAcceptingTherapists();
+  //   return response.therapists;
+  // });
 
-  useEffect(() => {
-    if (therapyId) {
-      execute();
-    }
-  }, [therapyId, execute]);
+  // useEffect(() => {
+  //   if (therapyId) {
+  //     execute();
+  //   }
+  // }, [therapyId, execute]);
 
-  useEffect(() => {
-    if (data) {
-      // Filter therapists by specialization if needed
-      // For now, showing all therapists
-      setTherapists(data);
-    }
-  }, [data]);
+  // useEffect(() => {
+  //   if (data) {
+  //     // Filter therapists by specialization if needed
+  //     // For now, showing all therapists
+  //     setTherapists(data);
+  //   }
+  // }, [data]);
 
   if (!therapyId || !therapyInfo) {
     return (
@@ -156,146 +158,266 @@ const TherapyDetailPage: React.FC = () => {
   }
 
   return (
-    <div className={styles.container}>
-      {/* Breadcrumb */}
-      <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <Link
-          to="/therapies"
-          style={{
-            textDecoration: 'none',
-            color: 'var(--color-primary)',
-            fontSize: 'var(--font-size-sm)',
-          }}
-        >
-          ← Back to All Therapies
-        </Link>
-      </div>
-
-      {/* Therapy Header */}
-      <div
-        className={styles.textCenter}
-        style={{ marginBottom: 'var(--spacing-2xl)' }}
-      >
-        <div style={{ fontSize: '3rem', marginBottom: 'var(--spacing-md)' }}>
-          {therapyInfo.icon}
+    <div>
+      <div className={styles.container}>
+        {/* Breadcrumb */}
+        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+          <Link
+            to="/therapies"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-xs)',
+              textDecoration: 'none',
+              color: '#f59e0b',
+              fontSize: 'var(--font-size-base)',
+              fontWeight: '500',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#fef3c7';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            ← Back to All Therapies
+          </Link>
         </div>
-        <h1 className={styles.mb4}>{therapyInfo.title}</h1>
-        <p
-          style={{
-            fontSize: 'var(--font-size-lg)',
-            maxWidth: '800px',
-            margin: '0 auto',
-            color: 'var(--color-text-secondary)',
-          }}
-        >
-          {therapyInfo.description}
-        </p>
-      </div>
 
-      {/* Detailed Information */}
-      <div
-        style={{
+        {/* Hero Section */}
+        <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-          gap: 'var(--spacing-xl)',
+          gap: 'var(--spacing-2xl)',
+          alignItems: 'center',
           marginBottom: 'var(--spacing-2xl)',
-        }}
-      >
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>What This Therapy Helps With</h2>
-          <div
-            style={{
-              whiteSpace: 'pre-line',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            {therapyInfo.detailedInfo}
-          </div>
-        </div>
-
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>When to Consider This Therapy</h2>
-          <p style={{ color: 'var(--color-text-secondary)' }}>
-            {therapyInfo.whenNeeded}
-          </p>
-          <div style={{ marginTop: 'var(--spacing-lg)' }}>
-            <Link to="/help" className={styles.btnSecondary}>
-              Get Professional Assessment
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Therapists List */}
-      <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-        <h2 style={{ marginBottom: 'var(--spacing-lg)' }}>
-          Available Therapists
-        </h2>
-
-        {loading && (
-          <div className={styles.textCenter}>
-            <LoadingSpinner />
-            <p style={{ marginTop: 'var(--spacing-md)' }}>
-              Loading therapists...
+          padding: 'var(--spacing-xl) 0'
+        }}>
+          {/* Left Content */}
+          <div>
+            <div style={{
+              fontSize: '4rem',
+              marginBottom: 'var(--spacing-md)'
+            }}>
+              {therapyInfo.icon}
+            </div>
+            <h1 style={{
+              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+              fontWeight: '700',
+              lineHeight: '1.2',
+              marginBottom: 'var(--spacing-lg)',
+              color: '#1f2937',
+              fontFamily: 'var(--font-family-display)'
+            }}>
+              {therapyInfo.title}
+            </h1>
+            <p style={{
+              fontSize: 'var(--font-size-lg)',
+              lineHeight: '1.6',
+              color: '#4b5563',
+              maxWidth: '500px'
+            }}>
+              {therapyInfo.description}
             </p>
           </div>
-        )}
 
-        {error && (
-          <ErrorMessage
-            message={error.message || 'Failed to load therapists'}
-          />
-        )}
+          {/* Right Image */}
+          <div style={{
+            textAlign: 'center',
+            padding: 'var(--spacing-lg)'
+          }}>
+            <div style={{
+              width: '250px',
+              height: '250px',
+              margin: '0 auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <img
+                src="/playtime.png"
+                alt="Child illustration"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+          </div>
+        </div>
 
-        {!loading && !error && therapists.length === 0 && (
-          <div className={styles.card} style={{ textAlign: 'center' }}>
-            <p>No therapists are currently available for this specialty.</p>
-            <Link to="/help" className={styles.btnPrimary}>
-              Contact Us for Referrals
+        {/* Information Cards */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: 'var(--spacing-xl)',
+          marginBottom: 'var(--spacing-2xl)',
+        }}>
+          {/* What This Therapy Helps With - Yellow Card */}
+          <div style={{
+            backgroundColor: '#E6D536',
+            borderRadius: '12px',
+            padding: 'var(--spacing-xl)',
+            color: '#1f2937',
+            position: 'relative',
+            minHeight: '300px',
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
+            <h2 style={{
+              fontSize: '1.5rem',
+              fontWeight: '600',
+              marginBottom: 'var(--spacing-md)',
+              borderBottom: '2px solid #1f2937',
+              paddingBottom: 'var(--spacing-xs)',
+              display: 'inline-block',
+            }}>
+              What This Therapy Helps With
+            </h2>
+            <div style={{
+              whiteSpace: 'pre-line',
+              flexGrow: 1,
+              lineHeight: '1.6'
+            }}>
+              {therapyInfo.detailedInfo}
+            </div>
+          </div>
+
+          {/* When to Consider - Purple Card */}
+          <div style={{
+            backgroundColor: '#7C3AED',
+            borderRadius: '12px',
+            padding: 'var(--spacing-xl)',
+            color: 'white',
+            position: 'relative',
+            minHeight: '300px',
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
+            <h2 style={{
+              fontSize: '1.5rem',
+              fontWeight: '600',
+              marginBottom: 'var(--spacing-md)',
+              borderBottom: '2px solid white',
+              paddingBottom: 'var(--spacing-xs)',
+              display: 'inline-block',
+            }}>
+              When to Consider This Therapy
+            </h2>
+            <p style={{
+              marginBottom: 'var(--spacing-lg)',
+              flexGrow: 1,
+              lineHeight: '1.6'
+            }}>
+              {therapyInfo.whenNeeded}
+            </p>
+            <Link
+              to="/help"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                color: 'white',
+                textDecoration: 'none',
+                fontWeight: '600',
+                fontSize: '0.9rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginTop: 'auto',
+              }}
+            >
+              GET PROFESSIONAL ASSESSMENT →
             </Link>
           </div>
-        )}
+        </div>
 
-        {therapists.length > 0 && (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              gap: 'var(--spacing-lg)',
-            }}
-          >
-            {therapists.map(therapist => (
-              <TherapistCard key={therapist.user_id} therapist={therapist} />
-            ))}
+      {/* Therapists Section - Simplified without backend dependency */}
+      {showTherapists && (
+        <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+          <h2 style={{ marginBottom: 'var(--spacing-lg)' }}>
+            Find Specialized Therapists
+          </h2>
+          <div className={styles.card} style={{ textAlign: 'center' }}>
+            <h3>Ready to Connect with Therapists?</h3>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
+              Browse our network of qualified {therapyInfo?.title.toLowerCase()} specialists.
+            </p>
+            <Link to="/therapists" className={styles.btnPrimary}>
+              Browse All Therapists
+            </Link>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Call to Action */}
-      <div className={styles.card} style={{ textAlign: 'center' }}>
-        <h2 className={styles.cardTitle}>Ready to Get Started?</h2>
-        <p
-          style={{
-            color: 'var(--color-text-secondary)',
+        {/* Call to Action */}
+        <div style={{
+          textAlign: 'center',
+          backgroundColor: '#f9fafb',
+          borderRadius: '12px',
+          padding: 'var(--spacing-2xl)',
+          marginTop: 'var(--spacing-2xl)'
+        }}>
+          <h2 style={{
+            fontSize: 'var(--font-size-2xl)',
+            fontWeight: '600',
+            marginBottom: 'var(--spacing-md)',
+            color: '#1f2937',
+            fontFamily: 'var(--font-family-display)'
+          }}>
+            Ready to Get Started?
+          </h2>
+          <p style={{
+            fontSize: 'var(--font-size-lg)',
+            color: '#4b5563',
             marginBottom: 'var(--spacing-lg)',
-          }}
-        >
-          Take the next step in supporting your child's development.
-        </p>
-        <div
-          style={{
+            maxWidth: '600px',
+            margin: '0 auto var(--spacing-lg) auto',
+            lineHeight: '1.6'
+          }}>
+            Take the next step in supporting your child's development.
+          </p>
+          <div style={{
             display: 'flex',
             gap: 'var(--spacing-md)',
             justifyContent: 'center',
             flexWrap: 'wrap',
-          }}
-        >
-          <Link to="/register" className={styles.btnPrimary}>
-            Register to Connect
-          </Link>
-          <Link to="/help" className={styles.btnSecondary}>
-            Need Guidance?
-          </Link>
+            alignItems: 'center'
+          }}>
+            <Link
+              to="/register"
+              style={{
+                backgroundColor: '#f59e0b',
+                color: 'white',
+                padding: '14px 28px',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontWeight: '600',
+                fontSize: 'var(--font-size-base)',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d97706'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f59e0b'}
+            >
+              Register to Connect
+            </Link>
+            <Link
+              to="/help"
+              style={{
+                textDecoration: 'none',
+                color: '#374151',
+                fontSize: 'var(--font-size-base)',
+                fontWeight: '600',
+                padding: '14px 28px'
+              }}
+            >
+              Need Guidance?
+            </Link>
+          </div>
         </div>
       </div>
     </div>

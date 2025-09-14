@@ -30,12 +30,12 @@
 
 .btnPrimary {
   composes: btn;
-  background-color: var(--color-primary);
+  background-color: #f59e0b;
   color: var(--color-text-white);
 }
 
 .btnPrimary:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
+  background-color: #d97706;
 }
 
 .btnSecondary {
@@ -83,8 +83,8 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgb(245 158 11 / 0.1);
 }
 
 .input:invalid {
@@ -144,7 +144,7 @@
   height: 20px;
   border: 2px solid var(--color-border);
   border-radius: 50%;
-  border-top-color: var(--color-primary);
+  border-top-color: #f59e0b;
   animation: spin 1s ease-in-out infinite;
 }
 
