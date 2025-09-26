@@ -25,6 +25,18 @@ export interface TherapistsResponse extends ApiResponse {
   therapists: TherapistProfile[];
 }
 
+export interface TherapyResponse {
+  id: string;
+  title: string;
+  short_description: string;
+  icon: string;
+  detailed_info: string;
+  when_needed: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // User types
 export type UserRole = 'client' | 'therapist';
 

@@ -202,47 +202,62 @@ all-tests: test
 ## frontend-install: Install frontend dependencies
 .PHONY: frontend-install
 frontend-install:
-	cd frontend && npm install
+	cd frontend && pnpm install
 
 ## frontend-dev: Start frontend development server
 .PHONY: frontend-dev
 frontend-dev:
-	cd frontend && npm start
+	cd frontend && pnpm start
+
+## frontend-restart: Restart frontend development server (kills existing and starts fresh)
+.PHONY: frontend-restart
+frontend-restart:
+	cd frontend && pnpm run restart
+
+## frontend-restart-fresh: Restart frontend with cache clearing
+.PHONY: frontend-restart-fresh
+frontend-restart-fresh:
+	cd frontend && pnpm run restart:fresh
 
 ## frontend-build: Build frontend for production
 .PHONY: frontend-build
 frontend-build:
-	cd frontend && npm run build
+	cd frontend && pnpm run build
 
 ## frontend-test: Run frontend tests
 .PHONY: frontend-test
 frontend-test:
-	cd frontend && npm test -- --coverage --watchAll=false
+	cd frontend && pnpm test -- --coverage --watchAll=false
 
 ## frontend-lint: Lint frontend code
 .PHONY: frontend-lint
 frontend-lint:
-	cd frontend && npm run lint
+	cd frontend && pnpm run lint
 
 ## frontend-lint-fix: Fix frontend linting issues
 .PHONY: frontend-lint-fix
 frontend-lint-fix:
-	cd frontend && npm run lint:fix
+	cd frontend && pnpm run lint:fix
 
 ## frontend-format: Format frontend code
 .PHONY: frontend-format
 frontend-format:
-	cd frontend && npm run format
+	cd frontend && pnpm run format
 
 ## frontend-format-check: Check frontend code formatting
 .PHONY: frontend-format-check
 frontend-format-check:
-	cd frontend && npm run format:check
+	cd frontend && pnpm run format:check
 
 ## frontend-type-check: Run TypeScript type checking
 .PHONY: frontend-type-check
 frontend-type-check:
-	cd frontend && npm run type-check
+	cd frontend && pnpm run type-check
+
+## frontend-clean: Clean frontend cache and reinstall
+.PHONY: frontend-clean
+frontend-clean:
+	cd frontend && pnpm run clean
 
 ## dev-full: Start both backend and frontend
 .PHONY: dev-full
@@ -251,6 +266,13 @@ dev-full:
 	sleep 5
 	make frontend-dev
 
+## dev-restart: Restart both backend and frontend
+.PHONY: dev-restart
+dev-restart:
+	make dev-detached
+	sleep 3
+	make frontend-restart
+
 ## build-all: Build both backend and frontend
 .PHONY: build-all
 build-all: build frontend-build
@@ -258,7 +280,7 @@ build-all: build frontend-build
 ## clean-all: Clean both backend and frontend
 .PHONY: clean-all
 clean-all: clean
-	cd frontend && rm -rf node_modules build
+	cd frontend && rm -rf node_modules build pnpm-lock.yaml
 
 ## frontend-ci: Run frontend CI pipeline (lint, format, type-check, test)
 .PHONY: frontend-ci
@@ -276,4 +298,4 @@ dev-frontend-only: frontend-install
 ## production-frontend: Build frontend for production
 .PHONY: production-frontend
 production-frontend:
-	cd frontend && npm ci --only=production && npm run build
+	cd frontend && pnpm install --prod && pnpm run build

@@ -5,6 +5,7 @@ import (
 
 	clientDomain "github.com/goran/thappy/internal/domain/client"
 	therapistDomain "github.com/goran/thappy/internal/domain/therapist"
+	therapyDomain "github.com/goran/thappy/internal/domain/therapy"
 	"github.com/goran/thappy/internal/domain/user"
 )
 
@@ -209,6 +210,31 @@ func ToTherapistProfileResponse(profile *therapistDomain.TherapistProfile) Thera
 	}
 }
 
+// Therapy Helper Functions
+func ToTherapyResponse(therapy *therapyDomain.Therapy) TherapyResponse {
+	return TherapyResponse{
+		ID:               therapy.ID,
+		Title:            therapy.Title,
+		ShortDescription: therapy.ShortDescription,
+		Icon:             therapy.Icon,
+		DetailedInfo:     therapy.DetailedInfo,
+		WhenNeeded:       therapy.WhenNeeded,
+		IsActive:         therapy.IsActive,
+		CreatedAt:        therapy.CreatedAt,
+		UpdatedAt:        therapy.UpdatedAt,
+	}
+}
+
+func ToTherapyListResponse(therapies []*therapyDomain.Therapy) TherapyListResponse {
+	responses := make([]TherapyResponse, len(therapies))
+	for i, t := range therapies {
+		responses[i] = ToTherapyResponse(t)
+	}
+	return TherapyListResponse{
+		Therapies: responses,
+	}
+}
+
 // Validation functions
 func (r *RegisterRequest) Validate() error {
 	if r.Email == "" {
@@ -334,6 +360,81 @@ func (r *RemoveSpecializationRequest) Validate() error {
 func (r *UpdateLicenseNumberRequest) Validate() error {
 	if r.LicenseNumber == "" {
 		return ErrMissingLicenseNumber
+	}
+	return nil
+}
+
+// Therapy Request DTOs
+type CreateTherapyRequest struct {
+	ID               string `json:"id"`
+	Title            string `json:"title"`
+	ShortDescription string `json:"short_description"`
+	Icon             string `json:"icon"`
+	DetailedInfo     string `json:"detailed_info"`
+	WhenNeeded       string `json:"when_needed"`
+}
+
+type UpdateTherapyRequest struct {
+	Title            string `json:"title,omitempty"`
+	ShortDescription string `json:"short_description,omitempty"`
+	Icon             string `json:"icon,omitempty"`
+	DetailedInfo     string `json:"detailed_info,omitempty"`
+	WhenNeeded       string `json:"when_needed,omitempty"`
+}
+
+// Therapy Response DTOs
+type TherapyResponse struct {
+	ID               string    `json:"id"`
+	Title            string    `json:"title"`
+	ShortDescription string    `json:"short_description"`
+	Icon             string    `json:"icon"`
+	DetailedInfo     string    `json:"detailed_info"`
+	WhenNeeded       string    `json:"when_needed"`
+	IsActive         bool      `json:"is_active"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+type CreateTherapyResponse struct {
+	Therapy TherapyResponse `json:"therapy"`
+	Message string          `json:"message"`
+}
+
+type TherapyListResponse struct {
+	Therapies []TherapyResponse `json:"therapies"`
+}
+
+type TherapyDetailResponse struct {
+	Therapy TherapyResponse `json:"therapy"`
+}
+
+// Therapy Validation Functions
+func (r *CreateTherapyRequest) Validate() error {
+	if r.ID == "" {
+		return ErrMissingTherapyID
+	}
+	if r.Title == "" {
+		return ErrMissingTitle
+	}
+	if r.ShortDescription == "" {
+		return ErrMissingShortDescription
+	}
+	if r.Icon == "" {
+		return ErrMissingIcon
+	}
+	if r.DetailedInfo == "" {
+		return ErrMissingDetailedInfo
+	}
+	if r.WhenNeeded == "" {
+		return ErrMissingWhenNeeded
+	}
+	return nil
+}
+
+func (r *UpdateTherapyRequest) Validate() error {
+	// For update requests, at least one field should be provided
+	if r.Title == "" && r.ShortDescription == "" && r.Icon == "" && r.DetailedInfo == "" && r.WhenNeeded == "" {
+		return ErrNoFieldsToUpdate
 	}
 	return nil
 }

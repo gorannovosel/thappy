@@ -17,7 +17,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "PORT=3004 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "test:coverage": "react-scripts test --coverage --watchAll=false",
@@ -26,7 +26,12 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
     "type-check": "tsc --noEmit",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "kill-dev": "lsof -ti:3004 | xargs kill -9 2>/dev/null || true",
+    "clear-cache": "rm -rf node_modules/.cache && rm -rf build && rm -rf .eslintcache",
+    "restart": "pnpm run kill-dev && pnpm start",
+    "restart:fresh": "pnpm run kill-dev && pnpm run clear-cache && pnpm start",
+    "clean": "pnpm run clear-cache && pnpm install"
   },
   "eslintConfig": {
     "extends": [
@@ -50,6 +55,7 @@
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/user-event": "^14.6.1",
     "msw": "^2.11.2",
-    "prettier": "^3.0.0"
+    "prettier": "^3.0.0",
+    "puppeteer": "^24.22.3"
   }
 }

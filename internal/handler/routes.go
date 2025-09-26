@@ -5,6 +5,7 @@ import (
 
 	clientDomain "github.com/goran/thappy/internal/domain/client"
 	therapistDomain "github.com/goran/thappy/internal/domain/therapist"
+	therapyDomain "github.com/goran/thappy/internal/domain/therapy"
 	"github.com/goran/thappy/internal/domain/user"
 	httputil "github.com/goran/thappy/internal/handler/http"
 )
@@ -13,6 +14,7 @@ type Router struct {
 	userHandler      *UserHandler
 	clientHandler    *ClientHandler
 	therapistHandler *TherapistHandler
+	therapyHandler   *TherapyHandler
 	authMiddleware   *httputil.AuthMiddleware
 }
 
@@ -20,12 +22,14 @@ func NewRouter(
 	userService user.UserService,
 	clientService clientDomain.ClientService,
 	therapistService therapistDomain.TherapistService,
+	therapyService therapyDomain.Service,
 	tokenService user.TokenService,
 ) *Router {
 	return &Router{
 		userHandler:      NewUserHandler(userService),
 		clientHandler:    NewClientHandler(clientService),
 		therapistHandler: NewTherapistHandler(therapistService),
+		therapyHandler:   NewTherapyHandler(therapyService),
 		authMiddleware:   httputil.NewAuthMiddleware(tokenService, userService),
 	}
 }
@@ -167,6 +171,17 @@ func (router *Router) SetupRoutes() http.Handler {
 	// Public therapist listing endpoints
 	mux.Handle("/api/therapists/accepting", router.applyMiddleware(
 		http.HandlerFunc(router.therapistHandler.GetAcceptingClients),
+		httputil.JSONMiddleware,
+	))
+
+	// Public therapy endpoints (for frontend to consume)
+	mux.Handle("/api/therapies", router.applyMiddleware(
+		http.HandlerFunc(router.therapyHandler.HandleTherapies),
+		httputil.JSONMiddleware,
+	))
+
+	mux.Handle("/api/therapies/", router.applyMiddleware(
+		http.HandlerFunc(router.therapyHandler.HandleTherapies),
 		httputil.JSONMiddleware,
 	))
 

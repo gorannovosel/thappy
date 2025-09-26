@@ -1,135 +1,65 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useAsync } from '../../hooks/useAsync';
-import { therapistDiscoveryApi } from '../../services/therapistDiscovery';
-import TherapistCard from '../../components/public/TherapistCard';
+import { Link, useParams } from 'react-router-dom';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import ErrorMessage from '../../components/common/ErrorMessage';
-import styles from '../../styles/global.module.css';
 import Footer from '../../components/Footer';
-import type { TherapistProfile } from '../../types/api';
+import { therapyApi } from '../../services/therapy';
+import styles from '../../styles/global.module.css';
+import type { TherapyResponse } from '../../types/api';
 
-const therapyDetails = {
-  'psychological-testing': {
-    title: 'Psychological testing',
-    icon: '🧠',
-    description: 'Recognizing that something feels different is one thing. Finally figuring out what your child needs is another.',
-    detailedInfo: `
-      Psychological testing can assess:
-      • Autism spectrum conditions
-      • Learning differences and disabilities
-      • Giftedness and school readiness
-      • Memory and cognitive skills
-      • Attention and executive functioning
-      • Emotional and behavioral patterns
-    `,
-    whenNeeded:
-      'Consider psychological testing if your child shows signs of learning differences, developmental concerns, or if you need clarity about their cognitive and emotional functioning.',
-  },
-  'general-therapy': {
-    title: 'General Therapy and Psychiatry',
-    icon: '💜',
-    description:
-      'Comprehensive mental health support addressing a wide range of emotional, behavioral, and psychological challenges through therapy and, when appropriate, medication management.',
-    detailedInfo: `
-      General therapy can help with:
-      • Persistent low mood, lack of motivation, withdrawal
-      • Trauma and stress-related issues
-      • Physical symptoms without an identified medical cause
-      • Sustained difficulties with everyday tasks
-      • Depression and mood disorders
-      • General mental health support
-    `,
-    whenNeeded:
-      'Consider general therapy if your child experiences persistent emotional difficulties, unexplained physical symptoms, trauma-related issues, or struggles with daily functioning.',
-  },
-  'anxiety-program': {
-    title: 'Anxiety Program',
-    icon: '💙',
-    description:
-      'Specialized treatment for anxiety disorders, helping children manage worries, fears, and physical symptoms while building coping skills and confidence.',
-    detailedInfo: `
-      The anxiety program addresses:
-      • Worries and fears, difficulty concentrating
-      • Physical symptoms (like racing heart)
-      • Feeling nervous, restless, edgy, afraid, or fearful
-      • Avoidance of things they need or want to do
-      • Social anxiety and phobias
-      • Panic attacks and generalized anxiety
-    `,
-    whenNeeded:
-      'Consider the anxiety program if your child experiences excessive worry, physical symptoms of anxiety, avoids activities due to fear, or has difficulty functioning due to anxiety.',
-  },
-  'ocd-program': {
-    title: 'OCD Program',
-    icon: '🌊',
-    description:
-      'Specialized treatment for obsessive-compulsive disorder, using evidence-based approaches to help children manage intrusive thoughts and compulsive behaviors.',
-    detailedInfo: `
-      The OCD program helps with:
-      • Repeated or ritualized behaviors driven by anxiety, fear, or disgust
-      • Overdoing things more than is needed
-      • Fear of not doing something "just right"
-      • Avoiding things they need or want to do
-      • Intrusive thoughts about any number of topics
-      • Compulsive checking, counting, or arranging
-    `,
-    whenNeeded:
-      'Consider the OCD program if your child engages in repetitive behaviors, has intrusive thoughts that cause distress, or spends excessive time on rituals that interfere with daily life.',
-  },
-  'adhd-program': {
-    title: 'ADHD Program',
-    icon: '🧡',
-    description:
-      'Comprehensive support for attention-deficit/hyperactivity disorder, combining behavioral strategies, skill-building, and when appropriate, medication management.',
-    detailedInfo: `
-      The ADHD program addresses:
-      • Difficulties paying attention
-      • Difficulty sitting still
-      • Distracting or disruptive behaviors
-      • Impulsive actions
-      • Organization and time management challenges
-      • Academic and social difficulties
-    `,
-    whenNeeded:
-      'Consider the ADHD program if your child has trouble focusing, acts impulsively, struggles to sit still, or has difficulty with organization and completing tasks.',
-  },
-  'disruptive-behaviors': {
-    title: 'Disruptive Behaviors Program',
-    icon: '💚',
-    description:
-      'Targeted interventions for children who display challenging behaviors, focusing on understanding triggers and developing positive coping strategies.',
-    detailedInfo: `
-      The program addresses:
-      • Tantrums and other behavioral upsets
-      • Impulsive actions
-      • Troubling behaviors at school or with friends
-      • Difficulty following directions
-      • Aggression and defiance
-      • Emotional dysregulation
-    `,
-    whenNeeded:
-      'Consider this program if your child has frequent tantrums, difficulty following rules, aggressive behaviors, or struggles with peer relationships due to behavioral challenges.',
-  },
-};
 
 const TherapyDetailPage: React.FC = () => {
   const { therapyId } = useParams<{ therapyId: string }>();
   const [showTherapists] = useState(false);
-  const therapyInfo = therapyId
-    ? therapyDetails[therapyId as keyof typeof therapyDetails]
-    : null;
+  const [therapy, setTherapy] = useState<TherapyResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!therapyInfo) {
+  useEffect(() => {
+    const fetchTherapy = async () => {
+      if (!therapyId) {
+        setError('Therapy ID is required');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await therapyApi.getTherapy(therapyId);
+        setTherapy(response.therapy);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load therapy');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTherapy();
+  }, [therapyId]);
+
+  if (loading) {
     return (
-      <div className={styles.container}>
-        <div className={styles.textCenter}>
-          <h1>Therapy Type Not Found</h1>
-          <p>The requested therapy type could not be found.</p>
-          <Link to="/therapies" className={styles.btnPrimary}>
-            Back to Therapies
-          </Link>
+      <div>
+        <div className={styles.container}>
+          <LoadingSpinner />
         </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !therapy) {
+    return (
+      <div>
+        <div className={styles.container}>
+          <div className={styles.textCenter}>
+            <h1>Therapy Type Not Found</h1>
+            <p>{error || 'The requested therapy type could not be found.'}</p>
+            <Link to="/therapies" className={styles.btnPrimary}>
+              Back to Therapies
+            </Link>
+          </div>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -160,7 +90,7 @@ const TherapyDetailPage: React.FC = () => {
                 color: '#1a1a1a',
                 fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
               }}>
-                {therapyInfo.title}
+                {therapy.title}
               </h1>
               <p style={{
                 fontSize: '18px',
@@ -169,7 +99,7 @@ const TherapyDetailPage: React.FC = () => {
                 marginBottom: '32px',
                 fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
               }}>
-                Recognizing that something feels different is one thing. Finally figuring out what your child needs is another.
+                {therapy.when_needed}
               </p>
               <Link
                 to="/help"
@@ -248,7 +178,7 @@ const TherapyDetailPage: React.FC = () => {
                     fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
                   }}>
                     When is<br />
-                    {therapyInfo.title.toLowerCase()}<br />
+                    {therapy.title.toLowerCase()}<br />
                     right?
                   </h3>
                   <p style={{
@@ -258,7 +188,7 @@ const TherapyDetailPage: React.FC = () => {
                     lineHeight: '1.4',
                     fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
                   }}>
-                    "{therapyInfo.title} isn't something about what's wrong with your child or family, it's to find ways to ensure everyone gets the support they need."
+                    "{therapy.title} isn't something about what's wrong with your child or family, it's to find ways to ensure everyone gets the support they need."
                   </p>
                 </div>
                 <div style={{
@@ -288,101 +218,31 @@ const TherapyDetailPage: React.FC = () => {
             <div>
               {/* Info Points */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    marginTop: '4px',
-                    flexShrink: 0
-                  }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2L13.09 8.26L19 9L13.09 9.74L12 16L10.91 9.74L5 9L10.91 8.26L12 2Z" fill="#1a1a1a"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <p style={{
-                      fontSize: '15px',
-                      color: '#1a1a1a',
-                      lineHeight: '1.5',
-                      margin: 0,
-                      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
+                {therapy.detailed_info.split('\n•').filter(item => item.trim()).map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      marginTop: '4px',
+                      flexShrink: 0
                     }}>
-                      Autism or other developmental concerns
-                    </p>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L13.09 8.26L19 9L13.09 9.74L12 16L10.91 9.74L5 9L10.91 8.26L12 2Z" fill="#1a1a1a"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p style={{
+                        fontSize: '15px',
+                        color: '#1a1a1a',
+                        lineHeight: '1.5',
+                        margin: 0,
+                        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
+                      }}>
+                        {item.trim()}
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    marginTop: '4px',
-                    flexShrink: 0
-                  }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2L13.09 8.26L19 9L13.09 9.74L12 16L10.91 9.74L5 9L10.91 8.26L12 2Z" fill="#1a1a1a"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <p style={{
-                      fontSize: '15px',
-                      color: '#1a1a1a',
-                      lineHeight: '1.5',
-                      margin: 0,
-                      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
-                    }}>
-                      Learning disorders or concerns about academic performance
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    marginTop: '4px',
-                    flexShrink: 0
-                  }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2L13.09 8.26L19 9L13.09 9.74L12 16L10.91 9.74L5 9L10.91 8.26L12 2Z" fill="#1a1a1a"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <p style={{
-                      fontSize: '15px',
-                      color: '#1a1a1a',
-                      lineHeight: '1.5',
-                      margin: 0,
-                      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
-                    }}>
-                      Patterns of executive functioning, memory, or other cognitive skills
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    marginTop: '4px',
-                    flexShrink: 0
-                  }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2L13.09 8.26L19 9L13.09 9.74L12 16L10.91 9.74L5 9L10.91 8.26L12 2Z" fill="#1a1a1a"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <p style={{
-                      fontSize: '15px',
-                      color: '#1a1a1a',
-                      lineHeight: '1.5',
-                      margin: 0,
-                      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
-                    }}>
-                      Readiness to start school, academic strengths, and giftedness
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>

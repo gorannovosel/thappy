@@ -7,6 +7,7 @@ import (
 
 	clientDomain "github.com/goran/thappy/internal/domain/client"
 	therapistDomain "github.com/goran/thappy/internal/domain/therapist"
+	therapyDomain "github.com/goran/thappy/internal/domain/therapy"
 	"github.com/goran/thappy/internal/domain/user"
 	"github.com/goran/thappy/internal/handler"
 	httputil "github.com/goran/thappy/internal/handler/http"
@@ -16,10 +17,12 @@ import (
 	"github.com/goran/thappy/internal/infrastructure/messaging"
 	clientRepository "github.com/goran/thappy/internal/repository/client/postgres"
 	therapistRepository "github.com/goran/thappy/internal/repository/therapist/postgres"
+	therapyRepository "github.com/goran/thappy/internal/repository/therapy/postgres"
 	userRepository "github.com/goran/thappy/internal/repository/user/postgres"
 	authService "github.com/goran/thappy/internal/service/auth"
 	clientService "github.com/goran/thappy/internal/service/client"
 	therapistService "github.com/goran/thappy/internal/service/therapist"
+	therapyService "github.com/goran/thappy/internal/service/therapy"
 	userService "github.com/goran/thappy/internal/service/user"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -37,11 +40,13 @@ type Container struct {
 	TokenService     user.TokenService
 	ClientService    clientDomain.ClientService
 	TherapistService therapistDomain.TherapistService
+	TherapyService   therapyDomain.Service
 
 	// Repositories
 	UserRepository      user.UserRepository
 	ClientRepository    clientDomain.ClientRepository
 	TherapistRepository therapistDomain.TherapistRepository
+	TherapyRepository   therapyDomain.Repository
 
 	// Handlers
 	UserHandler    *userHandler.Handler
@@ -121,6 +126,9 @@ func (c *Container) initRepositories() error {
 	// Therapist repository
 	c.TherapistRepository = therapistRepository.NewTherapistRepository(c.DB)
 
+	// Therapy repository
+	c.TherapyRepository = therapyRepository.NewTherapyRepository(c.DB)
+
 	return nil
 }
 
@@ -150,6 +158,11 @@ func (c *Container) initServices() error {
 		c.UserRepository,
 	)
 
+	// Therapy service
+	c.TherapyService = therapyService.NewTherapyService(
+		c.TherapyRepository,
+	)
+
 	return nil
 }
 
@@ -173,6 +186,7 @@ func (c *Container) initHandlers() error {
 		c.UserService,
 		c.ClientService,
 		c.TherapistService,
+		c.TherapyService,
 		c.TokenService,
 	)
 

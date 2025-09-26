@@ -1,61 +1,56 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import styles from '../../styles/global.module.css';
+import ErrorMessage from '../../components/common/ErrorMessage';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Footer from '../../components/Footer';
+import { therapyApi } from '../../services/therapy';
+import styles from '../../styles/global.module.css';
+import { TherapyResponse } from '../../types/api';
 
-interface TherapyType {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-}
-
-const therapyTypes: TherapyType[] = [
-  {
-    id: 'psychological-testing',
-    title: 'Psychological Testing',
-    description:
-      'Autism • Learning differences • Giftedness and school readiness • Memory and cognitive skills',
-    icon: '🧠',
-  },
-  {
-    id: 'general-therapy',
-    title: 'General Therapy and Psychiatry',
-    description:
-      'Persistent low mood, lack of motivation, withdrawal • Trauma and stress • Physical symptoms without an identified medical cause • Sustained difficulties with everyday tasks',
-    icon: '💜',
-  },
-  {
-    id: 'anxiety-program',
-    title: 'Anxiety Program',
-    description:
-      'Worries and fears, difficulty concentrating • Physical symptoms (like racing heart) • Feeling nervous, restless, edgy, afraid, or fearful • Avoidance of things they need or want to do',
-    icon: '💙',
-  },
-  {
-    id: 'ocd-program',
-    title: 'OCD Program',
-    description:
-      'Repeated or ritualized behaviors driven by anxiety, fear, or disgust • Overdoing things more than is needed • Fear of not doing something "just right" • Avoiding things they need or want to do • Intrusive thoughts about any number of topics',
-    icon: '🌊',
-  },
-  {
-    id: 'adhd-program',
-    title: 'ADHD Program',
-    description:
-      'Difficulties paying attention • Difficulty sitting still • Distracting or disruptive behaviors • Impulsive actions',
-    icon: '🧡',
-  },
-  {
-    id: 'disruptive-behaviors',
-    title: 'Disruptive Behaviors Program',
-    description:
-      'Tantrums and other behavioral upsets • Impulsive actions • Troubling behaviors at school or with friends • Difficulty following directions',
-    icon: '💚',
-  },
-];
 
 const TherapiesPage: React.FC = () => {
+  const [therapies, setTherapies] = useState<TherapyResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTherapies = async () => {
+      try {
+        setLoading(true);
+        const response = await therapyApi.getTherapies(true);
+        setTherapies(response.therapies);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load therapies');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTherapies();
+  }, []);
+
+  if (loading) {
+    return (
+      <div>
+        <div className={styles.container}>
+          <LoadingSpinner />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <div className={styles.container}>
+          <ErrorMessage message={error} />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className={styles.container}>
@@ -117,7 +112,7 @@ const TherapiesPage: React.FC = () => {
             marginBottom: 'var(--spacing-2xl)',
           }}
         >
-          {therapyTypes.map((therapy, index) => {
+          {therapies.map((therapy, index) => {
             // Exact colors from Brightline design
             const colorSchemes = [
               { bg: '#F3D525', text: '#000000' },  // Yellow - Psychological Testing
@@ -178,7 +173,7 @@ const TherapiesPage: React.FC = () => {
                     listStyle: 'none',
                   }}
                 >
-                  {therapy.description.split(' • ').filter(s => s).map((item, idx) => (
+                  {therapy.short_description.split(' • ').filter(s => s).map((item, idx) => (
                     <li
                       key={idx}
                       style={{
