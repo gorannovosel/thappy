@@ -357,6 +357,43 @@ func (h *TherapistHandler) GetAcceptingClients(w http.ResponseWriter, r *http.Re
 	h.writeJSONResponse(w, http.StatusOK, response)
 }
 
+func (h *TherapistHandler) SearchTherapists(w http.ResponseWriter, r *http.Request) {
+	var req SearchTherapistsRequest
+	if err := req.FromQueryParams(r.URL.Query()); err != nil {
+		h.writeErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		h.writeErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	filters := req.ToTherapistSearchFilters()
+	profiles, err := h.therapistService.SearchTherapists(r.Context(), filters)
+	if err != nil {
+		h.handleServiceError(w, err)
+		return
+	}
+
+	var profilesData []TherapistProfileData
+	for _, profile := range profiles {
+		profilesData = append(profilesData, ToTherapistProfileResponse(profile))
+	}
+
+	response := struct {
+		Therapists []TherapistProfileData `json:"therapists"`
+		Total      int                    `json:"total"`
+		Message    string                 `json:"message,omitempty"`
+	}{
+		Therapists: profilesData,
+		Total:      len(profilesData),
+		Message:    "Therapists search completed successfully",
+	}
+
+	h.writeJSONResponse(w, http.StatusOK, response)
+}
+
 func (h *TherapistHandler) DeleteProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := h.getUserIDFromContext(r)
 	if err != nil {

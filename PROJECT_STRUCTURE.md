@@ -17,6 +17,10 @@ thappy/
 │   │   │   ├── entity.go          # Article entity with validation
 │   │   │   ├── repository.go      # Article repository interface
 │   │   │   └── service.go         # Article service interface
+│   │   ├── therapist/             # Therapist domain
+│   │   │   ├── entity.go          # Therapist profile entity with validation
+│   │   │   ├── repository.go      # Therapist repository interface with search
+│   │   │   └── service.go         # Therapist service interface
 │   │   ├── entity.go              # Common domain entities
 │   │   ├── repository.go          # Repository interfaces
 │   │   └── service.go             # Service interfaces
@@ -31,6 +35,7 @@ thappy/
 │   │   │   └── errors.go          # Article-specific errors
 │   │   ├── therapy_handler.go     # Main therapy handler
 │   │   ├── article_handler.go     # Main article handler
+│   │   ├── therapist_handler.go   # Therapist profile & search handlers
 │   │   ├── health.go              # Health check endpoints
 │   │   ├── middleware.go          # HTTP middleware
 │   │   ├── routes.go              # Route definitions with CORS
@@ -42,6 +47,8 @@ thappy/
 │   │   │   └── therapy.go         # Therapy business logic
 │   │   ├── article/               # Article service implementation
 │   │   │   └── article.go         # Article business logic
+│   │   ├── therapist/             # Therapist service implementation
+│   │   │   └── therapist.go       # Therapist profile & search logic
 │   │   └── [feature]_service.go   # Other service implementations
 │   │
 │   ├── repository/                 # Data access layer
@@ -50,6 +57,8 @@ thappy/
 │   │       │   └── therapy_repo.go # Therapy PostgreSQL implementation
 │   │       ├── article/           # Article repository
 │   │       │   └── article_repo.go # Article PostgreSQL implementation
+│   │       ├── therapist/         # Therapist repository
+│   │       │   └── therapist_repo.go # Therapist PostgreSQL implementation with search
 │   │       └── [entity]_repo.go
 │   │
 │   └── infrastructure/            # External services & config
@@ -67,12 +76,14 @@ thappy/
 ├── migrations/                    # Database migrations
 │   ├── 000001_init_schema.up.sql
 │   ├── 000001_init_schema.down.sql
-│   ├── 000002_create_users_table.up.sql
-│   ├── 000002_create_users_table.down.sql
+│   ├── 000002_add_user_roles_and_profiles.up.sql
+│   ├── 000002_add_user_roles_and_profiles.down.sql
 │   ├── 000003_create_therapies_table.up.sql
 │   ├── 000003_create_therapies_table.down.sql
 │   ├── 000004_create_articles_table.up.sql
-│   └── 000004_create_articles_table.down.sql
+│   ├── 000004_create_articles_table.down.sql
+│   ├── 000005_add_sample_therapists.up.sql
+│   └── 000005_add_sample_therapists.down.sql
 │
 ├── test/                          # Go backend tests
 │   ├── integration/              # Integration tests
@@ -141,7 +152,7 @@ thappy/
 │   │   │   ├── auth.ts             # Authentication API calls
 │   │   │   ├── therapy.ts          # Therapy API service
 │   │   │   ├── article.ts          # Article API service
-│   │   │   └── therapists.ts       # Therapist-related API calls
+│   │   │   └── therapistDiscovery.ts # Therapist search & discovery API
 │   │   │
 │   │   ├── types/             # TypeScript type definitions
 │   │   │   └── api.ts              # API response/request types
@@ -236,6 +247,8 @@ This is a full-stack application with a **Go backend** providing REST APIs and a
 - **Session Management**: Automatic timeout with warning dialogs
 - **Error Handling**: Global error boundaries with user-friendly messaging
 - **API Integration**: TypeScript-first API service layer with type safety
+- **Therapist Search**: Real-time search with filters (name, specialization, availability)
+- **Database Integration**: All content now served from PostgreSQL with search capabilities
 
 #### Styling Approach
 - **Modern Design**: Brightline-inspired clean interface with Inter font

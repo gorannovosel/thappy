@@ -54,6 +54,10 @@ func (router *Router) SetupRoutes() http.Handler {
 	mux.HandleFunc("/api/articles", router.articleHandler.HandleArticles)
 	mux.HandleFunc("/api/articles/", router.articleHandler.HandleArticles)
 
+	// Public therapist endpoints (for frontend to consume)
+	mux.HandleFunc("/api/therapists/accepting", router.therapistHandler.GetAcceptingClients)
+	mux.HandleFunc("/api/therapists/search", router.therapistHandler.SearchTherapists)
+
 	// Wrap with CORS middleware
 	return router.corsMiddleware(mux)
 }

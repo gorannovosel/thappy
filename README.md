@@ -1,11 +1,12 @@
-# Thappy - User Authentication API
+# Thappy - Mental Health Services Platform
 
 [![Go Version](https://img.shields.io/badge/Go-1.24-blue.svg)](https://golang.org/)
+[![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://docs.docker.com/compose/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A production-ready user authentication API built with Go, PostgreSQL, and RabbitMQ following Test-Driven Development (TDD) principles and clean architecture patterns.
+A full-stack mental health services platform with therapist search, therapy resources, and user management. Built with Go backend, React frontend, and PostgreSQL following clean architecture principles.
 
 ## 🚀 Quick Start
 
@@ -15,8 +16,11 @@ git clone <your-repo>
 cd thappy
 cp .env.example .env
 
-# Start development environment
+# Start backend services
 make dev
+
+# Start frontend (in another terminal)
+make frontend-dev
 
 # Run tests
 make test
@@ -25,14 +29,29 @@ make test
 ./test/curl/run-all-tests.sh
 ```
 
-**API will be available at:** `http://localhost:8080`
+**Backend API:** `http://localhost:8080`
+**Frontend App:** `http://localhost:3004`
 
 ## 📋 Features
 
+### 🔐 Authentication & User Management
 - ✅ **User Registration & Login** - Secure authentication with JWT tokens
+- ✅ **Role-Based Access** - Client and therapist user roles
 - ✅ **Password Security** - bcrypt hashing with configurable cost
-- ✅ **Input Validation** - Comprehensive email and password validation
 - ✅ **Protected Endpoints** - JWT middleware for authenticated routes
+
+### 🔍 Therapist Discovery
+- ✅ **Therapist Search** - Real-time search by name, specialization, or bio
+- ✅ **Advanced Filtering** - Filter by availability and specializations
+- ✅ **Profile Management** - Complete therapist profile system
+- ✅ **Contact Integration** - Direct therapist contact information
+
+### 📚 Content Management
+- ✅ **Therapy Resources** - Educational articles and therapy information
+- ✅ **Dynamic Content** - Database-driven content with search capabilities
+- ✅ **Responsive Design** - Mobile-first React frontend
+
+### 🛠️ Technical Features
 - ✅ **Database Integration** - PostgreSQL with migrations and connection pooling
 - ✅ **Message Queue** - RabbitMQ integration for future features
 - ✅ **Health Checks** - API and database health monitoring

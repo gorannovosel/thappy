@@ -29,4 +29,7 @@ var (
 	ErrMissingAuthor            = errors.New("article author is required")
 	ErrMissingCategory          = errors.New("article category is required")
 	ErrMissingSlug              = errors.New("article slug is required")
+	ErrInvalidAcceptingClientsValue = errors.New("invalid accepting_clients value - must be true or false")
+	ErrInvalidLimitValue        = errors.New("invalid limit value - must be a positive integer")
+	ErrInvalidOffsetValue       = errors.New("invalid offset value - must be a positive integer")
 )

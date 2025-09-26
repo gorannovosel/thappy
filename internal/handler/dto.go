@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"net/url"
+	"strconv"
+	"strings"
 	"time"
 
 	articleDomain "github.com/goran/thappy/internal/domain/article"
@@ -87,6 +90,14 @@ type SetAcceptingClientsRequest struct {
 
 type UpdateLicenseNumberRequest struct {
 	LicenseNumber string `json:"license_number"`
+}
+
+type SearchTherapistsRequest struct {
+	SearchText       string   `json:"search_text,omitempty"`
+	Specializations  []string `json:"specializations,omitempty"`
+	AcceptingClients *bool    `json:"accepting_clients,omitempty"`
+	Limit            int      `json:"limit,omitempty"`
+	Offset           int      `json:"offset,omitempty"`
 }
 
 // Role-based Registration Request
@@ -571,4 +582,72 @@ func (r *UpdateArticleRequest) Validate() error {
 		return ErrNoFieldsToUpdate
 	}
 	return nil
+}
+
+// SearchTherapistsRequest methods
+func (r *SearchTherapistsRequest) FromQueryParams(params url.Values) error {
+	r.SearchText = params.Get("search")
+
+	// Parse specializations from comma-separated string
+	if specs := params.Get("specializations"); specs != "" {
+		r.Specializations = strings.Split(specs, ",")
+		for i, spec := range r.Specializations {
+			r.Specializations[i] = strings.TrimSpace(spec)
+		}
+	}
+
+	// Parse accepting_clients
+	if acceptingStr := params.Get("accepting_clients"); acceptingStr != "" {
+		accepting, err := strconv.ParseBool(acceptingStr)
+		if err != nil {
+			return ErrInvalidAcceptingClientsValue
+		}
+		r.AcceptingClients = &accepting
+	}
+
+	// Parse limit
+	if limitStr := params.Get("limit"); limitStr != "" {
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit < 0 {
+			return ErrInvalidLimitValue
+		}
+		r.Limit = limit
+	}
+
+	// Parse offset
+	if offsetStr := params.Get("offset"); offsetStr != "" {
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			return ErrInvalidOffsetValue
+		}
+		r.Offset = offset
+	}
+
+	return nil
+}
+
+func (r *SearchTherapistsRequest) Validate() error {
+	if r.Limit < 0 {
+		return ErrInvalidLimitValue
+	}
+	if r.Offset < 0 {
+		return ErrInvalidOffsetValue
+	}
+	if r.Limit > 100 {
+		r.Limit = 100 // Cap at 100 for performance
+	}
+	if r.Limit == 0 {
+		r.Limit = 20 // Default limit
+	}
+	return nil
+}
+
+func (r *SearchTherapistsRequest) ToTherapistSearchFilters() therapistDomain.TherapistSearchFilters {
+	return therapistDomain.TherapistSearchFilters{
+		SearchText:       r.SearchText,
+		Specializations:  r.Specializations,
+		AcceptingClients: r.AcceptingClients,
+		Limit:            r.Limit,
+		Offset:           r.Offset,
+	}
 }

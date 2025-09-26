@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { TherapistProfile } from '../../types/api';
-import { therapistDiscoveryApi } from '../../services/therapistDiscovery';
+import { therapistDiscoveryApi, TherapistSearchParams } from '../../services/therapistDiscovery';
 import TherapistCard from '../../components/public/TherapistCard';
 import styles from '../../styles/global.module.css';
 import Footer from '../../components/Footer';
@@ -11,16 +11,20 @@ const TherapistsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [specializationFilter, setSpecializationFilter] = useState('');
+  const [showOnlyAccepting, setShowOnlyAccepting] = useState(true);
 
-  useEffect(() => {
-    loadTherapists();
-  }, []);
-
-  const loadTherapists = async () => {
+  const loadTherapists = useCallback(async (searchParams: TherapistSearchParams = {}) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await therapistDiscoveryApi.getAcceptingTherapists();
+
+      // If showing only accepting clients, set that filter
+      const params = {
+        ...searchParams,
+        accepting_clients: showOnlyAccepting ? true : undefined,
+      };
+
+      const response = await therapistDiscoveryApi.searchTherapists(params);
       setTherapists(response.therapists);
     } catch (error) {
       setError(
@@ -29,39 +33,42 @@ const TherapistsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showOnlyAccepting]);
+
+  useEffect(() => {
+    loadTherapists();
+  }, [loadTherapists]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const searchParams: TherapistSearchParams = {};
+
+      if (searchTerm.trim()) {
+        searchParams.search = searchTerm.trim();
+      }
+
+      if (specializationFilter) {
+        searchParams.specializations = [specializationFilter];
+      }
+
+      loadTherapists(searchParams);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, specializationFilter, loadTherapists]);
 
   const handleContact = (therapist: TherapistProfile) => {
     // This could open a modal, navigate to a contact form, or show contact info
     alert(
-      `Contact Dr. ${therapist.first_name} ${therapist.last_name} at ${therapist.phone || 'See profile for contact information'}`
+      `Contact ${therapist.first_name} ${therapist.last_name} at ${therapist.phone || 'See profile for contact information'}`
     );
   };
 
-  // Get unique specializations for filter dropdown
+  // Get unique specializations for filter dropdown from all therapists
   const allSpecializations = Array.from(
     new Set(therapists.flatMap(t => t.specializations))
   ).sort();
-
-  // Filter therapists based on search and specialization
-  const filteredTherapists = therapists.filter(therapist => {
-    const matchesSearch =
-      searchTerm === '' ||
-      `${therapist.first_name} ${therapist.last_name}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      therapist.specializations.some(spec =>
-        spec.toLowerCase().includes(searchTerm.toLowerCase())
-      ) ||
-      (therapist.bio &&
-        therapist.bio.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const matchesSpecialization =
-      specializationFilter === '' ||
-      therapist.specializations.includes(specializationFilter);
-
-    return matchesSearch && matchesSpecialization;
-  });
 
   return (
     <div>
@@ -191,9 +198,34 @@ const TherapistsPage: React.FC = () => {
                 ))}
               </select>
             </div>
+
+            <div>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--spacing-sm)',
+                  fontWeight: '600',
+                  color: '#1f2937',
+                  cursor: 'pointer'
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={showOnlyAccepting}
+                  onChange={e => setShowOnlyAccepting(e.target.checked)}
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    accentColor: '#f59e0b'
+                  }}
+                />
+                Only show therapists accepting new clients
+              </label>
+            </div>
           </div>
 
-          {(searchTerm || specializationFilter) && (
+          {(searchTerm || specializationFilter || !showOnlyAccepting) && (
             <div style={{
               marginTop: 'var(--spacing-lg)',
               display: 'flex',
@@ -205,12 +237,14 @@ const TherapistsPage: React.FC = () => {
                 fontSize: 'var(--font-size-sm)',
                 color: '#4b5563'
               }}>
-                Showing {filteredTherapists.length} of {therapists.length} therapists
+                Found {therapists.length} therapist{therapists.length !== 1 ? 's' : ''}
+                {(searchTerm || specializationFilter || !showOnlyAccepting) && ' matching your criteria'}
               </span>
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setSpecializationFilter('');
+                  setShowOnlyAccepting(true);
                 }}
                 style={{
                   padding: '6px 12px',
@@ -254,7 +288,7 @@ const TherapistsPage: React.FC = () => {
           <div className={styles.error} style={{ textAlign: 'center' }}>
             <p>{error}</p>
             <button
-              onClick={loadTherapists}
+              onClick={() => loadTherapists()}
               className={styles.btnSecondary}
               style={{ marginTop: '1rem' }}
             >
@@ -267,24 +301,25 @@ const TherapistsPage: React.FC = () => {
       {/* Therapists Grid */}
       {!loading && !error && (
         <>
-          {filteredTherapists.length === 0 ? (
+          {therapists.length === 0 ? (
             <div className={styles.card}>
               <div className={styles.textCenter}>
                 <p style={{ color: 'var(--text-secondary)' }}>
-                  {therapists.length === 0
-                    ? 'No therapists are currently accepting new clients.'
-                    : 'No therapists match your search criteria.'}
+                  {(searchTerm || specializationFilter || !showOnlyAccepting)
+                    ? 'No therapists match your search criteria.'
+                    : 'No therapists are currently available.'}
                 </p>
-                {(searchTerm || specializationFilter) && (
+                {(searchTerm || specializationFilter || !showOnlyAccepting) && (
                   <button
                     onClick={() => {
                       setSearchTerm('');
                       setSpecializationFilter('');
+                      setShowOnlyAccepting(true);
                     }}
                     className={styles.btnSecondary}
                     style={{ marginTop: '1rem' }}
                   >
-                    View All Therapists
+                    View All Available Therapists
                   </button>
                 )}
               </div>
@@ -297,7 +332,7 @@ const TherapistsPage: React.FC = () => {
                 gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
               }}
             >
-              {filteredTherapists.map(therapist => (
+              {therapists.map(therapist => (
                 <TherapistCard
                   key={therapist.user_id}
                   therapist={therapist}
