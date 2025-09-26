@@ -23,12 +23,22 @@
   gap: 0.5rem;
 }
 
+.nameLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.nameLink:hover .name {
+  color: var(--primary-color);
+}
+
 .name {
   margin: 0;
   color: var(--text-primary);
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.3;
+  transition: color 0.2s;
 }
 
 .acceptingBadge {
@@ -108,10 +118,32 @@
 
 .actions {
   margin-bottom: 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.viewProfileButton {
+  flex: 1;
+  padding: 0.75rem;
+  background-color: white;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.viewProfileButton:hover {
+  background-color: var(--primary-color);
+  color: white;
 }
 
 .contactButton {
-  width: 100%;
+  flex: 1;
   padding: 0.75rem;
   background-color: var(--primary-color);
   color: white;

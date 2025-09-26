@@ -1,6 +1,5 @@
 import { TherapistsResponse } from '../types/api';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+import { API_BASE_URL } from '../utils/constants';
 
 export interface TherapistSearchParams {
   search?: string;
@@ -73,5 +72,43 @@ export const therapistDiscoveryApi = {
 
   async getAllTherapists(): Promise<TherapistsResponse> {
     return this.searchTherapists();
+  },
+
+  async getTherapistById(id: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/api/therapists/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: 'Failed to fetch therapist details' }));
+      throw new Error(error.message || 'Failed to fetch therapist details');
+    }
+
+    const data = await response.json();
+    return data.profile;
+  },
+
+  async getTherapistByLicenseNumber(licenseNumber: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/api/therapists/profile/${licenseNumber}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: 'Failed to fetch therapist details' }));
+      throw new Error(error.message || 'Failed to fetch therapist details');
+    }
+
+    const data = await response.json();
+    return data.profile;
   },
 };

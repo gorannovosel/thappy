@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strings"
 
 	therapistDomain "github.com/goran/thappy/internal/domain/therapist"
 )
@@ -389,6 +390,52 @@ func (h *TherapistHandler) SearchTherapists(w http.ResponseWriter, r *http.Reque
 		Therapists: profilesData,
 		Total:      len(profilesData),
 		Message:    "Therapists search completed successfully",
+	}
+
+	h.writeJSONResponse(w, http.StatusOK, response)
+}
+
+func (h *TherapistHandler) GetTherapistByID(w http.ResponseWriter, r *http.Request) {
+	// Extract ID from URL path
+	path := r.URL.Path
+	id := path[strings.LastIndex(path, "/")+1:]
+
+	if id == "" {
+		h.writeErrorResponse(w, http.StatusBadRequest, "Therapist ID is required")
+		return
+	}
+
+	profile, err := h.therapistService.GetProfile(r.Context(), id)
+	if err != nil {
+		h.handleServiceError(w, err)
+		return
+	}
+
+	response := TherapistProfileResponse{
+		Profile: ToTherapistProfileResponse(profile),
+	}
+
+	h.writeJSONResponse(w, http.StatusOK, response)
+}
+
+func (h *TherapistHandler) GetTherapistByLicenseNumber(w http.ResponseWriter, r *http.Request) {
+	// Extract license number from URL path
+	path := r.URL.Path
+	licenseNumber := path[strings.LastIndex(path, "/")+1:]
+
+	if licenseNumber == "" {
+		h.writeErrorResponse(w, http.StatusBadRequest, "License number is required")
+		return
+	}
+
+	profile, err := h.therapistService.GetByLicenseNumber(r.Context(), licenseNumber)
+	if err != nil {
+		h.handleServiceError(w, err)
+		return
+	}
+
+	response := TherapistProfileResponse{
+		Profile: ToTherapistProfileResponse(profile),
 	}
 
 	h.writeJSONResponse(w, http.StatusOK, response)

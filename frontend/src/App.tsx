@@ -9,6 +9,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import TherapistsPage from './pages/public/TherapistsPage';
+import TherapistDetailPage from './pages/public/TherapistDetailPage';
 import TherapiesPage from './pages/public/TherapiesPage';
 import TherapyDetailPage from './pages/public/TherapyDetailPage';
 import ArticlesPage from './pages/public/ArticlesPage';
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/therapists" element={<TherapistsPage />} />
+                <Route path="/therapists/:id" element={<TherapistDetailPage />} />
                 <Route path="/therapies" element={<TherapiesPage />} />
                 <Route
                   path="/therapies/:therapyId"

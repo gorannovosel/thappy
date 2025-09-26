@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  process.env.REACT_APP_API_URL || 'http://localhost:8080';
+  process.env.REACT_APP_API_URL || 'http://localhost:8081';
 
 export const API_ENDPOINTS = {
   // Health
@@ -36,6 +36,17 @@ export const API_ENDPOINTS = {
 
   // Public endpoints
   THERAPISTS_ACCEPTING: '/api/therapists/accepting',
+  THERAPISTS_SEARCH: '/api/therapists/search',
+  THERAPIST_DETAIL: '/api/therapists/',
+  THERAPIST_BY_LICENSE: '/api/therapists/profile/',
+
+  // Article endpoints
+  ARTICLES: '/api/articles',
+  ARTICLE_DETAIL: '/api/articles/',
+
+  // Therapy endpoints
+  THERAPIES: '/api/therapies',
+  THERAPY_DETAIL: '/api/therapies/',
 } as const;
 
 export const LOCAL_STORAGE_KEYS = {

@@ -1,6 +1,5 @@
 import { ArticleListResponse, ArticleDetailResponse } from '../types/api';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
+import { API_BASE_URL } from '../utils/constants';
 
 export const articleApi = {
   async getArticles(publishedOnly = true, category?: string): Promise<ArticleListResponse> {

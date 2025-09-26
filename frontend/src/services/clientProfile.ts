@@ -1,6 +1,5 @@
 import { ClientProfileResponse } from '../types/api';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+import { API_BASE_URL } from '../utils/constants';
 
 const getAuthHeaders = (): HeadersInit => {
   const token = localStorage.getItem('token');

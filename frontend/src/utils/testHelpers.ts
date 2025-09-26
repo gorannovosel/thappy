@@ -1,5 +1,6 @@
 // Development testing utilities
 // These helpers are only for development/testing purposes
+import { API_BASE_URL } from './constants';
 
 export const TestUsers = {
   CLIENT: {
@@ -60,7 +61,7 @@ export const testApiEndpoint = async (
   options?: RequestInit
 ) => {
   if (process.env.NODE_ENV === 'development') {
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+    const baseUrl = process.env.REACT_APP_API_URL || API_BASE_URL;
     const url = `${baseUrl}${endpoint}`;
 
     console.log(`🌐 Testing API: ${options?.method || 'GET'} ${url}`);

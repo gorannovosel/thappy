@@ -47,6 +47,140 @@ logs:
 logs-api:
 	$(DOCKER_COMPOSE) logs -f api
 
+## run-backend: Run backend API server directly (no Docker)
+.PHONY: run-backend
+run-backend:
+	$(GO) run ./cmd/api
+
+## run-frontend: Run frontend development server
+.PHONY: run-frontend
+run-frontend:
+	cd frontend && pnpm start
+
+## restart-backend: Kill and restart backend server
+.PHONY: restart-backend
+restart-backend:
+	@echo "Stopping backend..."
+	@pkill -f "go run ./cmd/api" || true
+	@sleep 1
+	@echo "Starting backend..."
+	$(GO) run ./cmd/api
+
+## restart-frontend: Kill and restart frontend server
+.PHONY: restart-frontend
+restart-frontend:
+	@echo "Stopping frontend..."
+	@pkill -f "pnpm start" || true
+	@pkill -f "react-scripts start" || true
+	@sleep 1
+	@echo "Starting frontend..."
+	cd frontend && pnpm start
+
+## dev-local: Start both backend and frontend locally (no Docker)
+.PHONY: dev-local
+dev-local:
+	@echo "Starting backend and frontend..."
+	@make run-backend &
+	@sleep 3
+	@make run-frontend
+
+## restart-all: Restart both backend and frontend
+.PHONY: restart-all
+restart-all:
+	@echo "Restarting all services..."
+	@pkill -f "go run ./cmd/api" || true
+	@pkill -f "pnpm start" || true
+	@pkill -f "react-scripts start" || true
+	@sleep 2
+	@echo "Starting backend..."
+	@make run-backend &
+	@sleep 3
+	@echo "Starting frontend..."
+	@make run-frontend
+
+## stop-all: Stop all running services
+.PHONY: stop-all
+stop-all:
+	./scripts/kill-processes.sh
+	@sleep 2
+
+## kill-frontend: Kill all frontend processes
+.PHONY: kill-frontend
+kill-frontend:
+	@echo "Killing frontend processes..."
+	@pkill -f "pnpm start" 2>/dev/null || true
+	@pkill -f "react-scripts" 2>/dev/null || true
+	@pkill -f "fork-ts-checker-webpack-plugin" 2>/dev/null || true
+	@sleep 1
+
+## kill-backend: Kill all backend processes
+.PHONY: kill-backend
+kill-backend:
+	@echo "Killing backend processes..."
+	@pkill -f "go run.*cmd/api" 2>/dev/null || true
+	@sleep 1
+
+## clear-frontend-cache: Clear React cache and node_modules cache
+.PHONY: clear-frontend-cache
+clear-frontend-cache:
+	@echo "Clearing frontend cache..."
+	@cd frontend && rm -rf node_modules/.cache .eslintcache build
+	@echo "Frontend cache cleared"
+
+## fix-ports: Fix hardcoded port references to use 8081
+.PHONY: fix-ports
+fix-ports:
+	@echo "Fixing hardcoded port references..."
+	@find frontend/src -name "*.ts" -o -name "*.tsx" | xargs sed -i 's/localhost:8080/localhost:8081/g'
+	@echo "Port references updated to 8081"
+
+## check-hardcoded-urls: Check for hardcoded API URLs that should use central config
+.PHONY: check-hardcoded-urls
+check-hardcoded-urls:
+	@echo "Checking for hardcoded API URLs..."
+	@echo "Files with hardcoded API_BASE_URL:"
+	@grep -r "API_BASE_URL.*process.env" frontend/src --include="*.ts" --include="*.tsx" || echo "  None found"
+	@echo "\nFiles with hardcoded localhost URLs:"
+	@grep -r "localhost:" frontend/src --include="*.ts" --include="*.tsx" | grep -v constants.ts | grep -v testHelpers.ts | grep -v setupTests.ts || echo "  None found"
+	@echo "\nUse 'make fix-hardcoded-urls' to automatically fix these issues"
+
+## fix-hardcoded-urls: Fix hardcoded URLs to use centralized constants
+.PHONY: fix-hardcoded-urls
+fix-hardcoded-urls:
+	@echo "Fixing hardcoded URLs to use centralized config..."
+	@for file in $$(find frontend/src -name "*.ts" -o -name "*.tsx" | grep -v constants.ts | grep -v testHelpers.ts | grep -v setupTests.ts); do \
+		if grep -q "API_BASE_URL.*process.env" "$$file"; then \
+			echo "Fixing $$file"; \
+			sed -i 's/const API_BASE_URL = process\.env\.REACT_APP_API_URL || .*//' "$$file"; \
+			if ! grep -q "import.*API_BASE_URL.*constants" "$$file"; then \
+				sed -i '1i import { API_BASE_URL } from '"'"'../utils/constants'"'"';\' "$$file"; \
+			fi; \
+		fi; \
+	done
+	@echo "Hardcoded URLs fixed"
+
+## clean-start: Kill everything, clear cache, and start fresh
+.PHONY: clean-start
+clean-start: kill-frontend kill-backend clear-frontend-cache
+	@echo "Starting fresh..."
+	@sleep 1
+	@echo "Starting backend..."
+	@$(MAKE) run-backend > /dev/null 2>&1 &
+	@sleep 3
+	@echo "Starting frontend..."
+	@$(MAKE) run-frontend
+
+## status: Check status of services
+.PHONY: status
+status:
+	@echo "Checking service status..."
+	@echo "\nBackend (port 8081):"
+	@curl -s http://localhost:8081/health | python3 -m json.tool 2>/dev/null || echo "  Not responding"
+	@echo "\nFrontend (port 3004):"
+	@curl -s -o /dev/null -w "  Status: %{http_code}\n" http://localhost:3004 2>/dev/null || echo "  Not responding"
+	@echo "\nRunning processes:"
+	@ps aux | grep -E "(go run|pnpm|react-scripts)" | grep -v grep || echo "  No services running"
+
 ## build: Build the application
 .PHONY: build
 build:

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { TherapistProfile } from '../../types/api';
 import styles from './TherapistCard.module.css';
 
@@ -28,9 +29,14 @@ const TherapistCard: React.FC<TherapistCardProps> = ({
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <h3 className={styles.name}>
-          Dr. {therapist.first_name} {therapist.last_name}
-        </h3>
+        <Link
+          to={`/therapists/${therapist.user_id}`}
+          className={styles.nameLink}
+        >
+          <h3 className={styles.name}>
+            Dr. {therapist.first_name} {therapist.last_name}
+          </h3>
+        </Link>
         {therapist.accepting_clients && (
           <span className={styles.acceptingBadge}>Accepting Clients</span>
         )}
@@ -72,14 +78,20 @@ const TherapistCard: React.FC<TherapistCardProps> = ({
       </div>
 
       <div className={styles.actions}>
+        <Link
+          to={`/therapists/${therapist.user_id}`}
+          className={styles.viewProfileButton}
+        >
+          View Profile
+        </Link>
         <button
           className={styles.contactButton}
           onClick={handleContact}
           disabled={!therapist.accepting_clients}
         >
           {therapist.accepting_clients
-            ? 'Contact Therapist'
-            : 'Not Accepting Clients'}
+            ? 'Contact'
+            : 'Not Accepting'}
         </button>
       </div>
 
