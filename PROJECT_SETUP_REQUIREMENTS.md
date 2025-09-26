@@ -3,17 +3,21 @@
 ## Architecture Overview
 
 This is a full-stack therapy platform with:
-- **Go backend** providing REST APIs (port 8080)
+- **Go backend** providing REST APIs (port 8081)
 - **React TypeScript frontend** for user interface (port 3004)
-- **PostgreSQL** for data persistence
-- **RabbitMQ** for message queuing
+- **PostgreSQL** for data persistence (port 5433 local)
+- **RabbitMQ** for message queuing (port 5672)
+- **Nginx proxy** for API routing and CORS handling
 
 ## Core Components
 
 ### 1. Docker & Docker Compose
-- `docker-compose.yml` - Orchestrate all services
+- `docker-compose.yml` - Default (local development)
+- `docker-compose.local.yml` - Explicit local development setup
+- `docker-compose.prod.yml` - Production environment
 - `.dockerignore` - Exclude unnecessary files from Docker context
 - `Dockerfile` - Multi-stage build for Go application
+- `frontend/Dockerfile` - Multi-stage build for React application with nginx
 
 ### 2. Go Backend Structure
 ```
@@ -119,15 +123,35 @@ This is a full-stack therapy platform with:
    - Final minimal runtime image
    - Non-root user execution
 
-3. **Makefile**
+3. **Makefile** (Professional with 30 essential commands)
    ```makefile
-   - make run (docker-compose up)
-   - make build
-   - make test
-   - make lint
-   - make migrate-up
-   - make migrate-down
-   - make clean
+   # Development
+   - make dev              # Start full Docker environment
+   - make dev-local        # Start local development (no Docker)
+   - make setup            # Initialize project
+   - make clean            # Clean development environment
+   - make status           # Check service health
+
+   # Building & Testing
+   - make build            # Build backend for production
+   - make test             # Run all tests
+   - make test-backend     # Run Go tests only
+   - make test-frontend    # Run React tests only
+
+   # Code Quality
+   - make lint             # Run all linters
+   - make format           # Format code
+   - make ci               # Full CI pipeline
+
+   # Database
+   - make migrate-up       # Run migrations
+   - make migrate-create   # Create new migration
+   - make db-shell         # Connect to database
+
+   # Production
+   - make prod             # Start production environment
+   - make prod-stop        # Stop production
+   - make prod-logs        # View production logs
    ```
 
 4. **.env.example**
@@ -211,12 +235,20 @@ cd frontend && pnpm test
 ```
 
 ## Local Development Ports
-- Backend API: http://localhost:8080
-- Frontend React App: http://localhost:3004
-- PostgreSQL: localhost:5432
-- RabbitMQ Management: http://localhost:15672
-- Prometheus Metrics: http://localhost:8080/metrics
-- Health Check: http://localhost:8080/health
+
+### Docker Development (`make dev`)
+- **Frontend**: http://localhost:3004 (nginx proxy)
+- **Backend API**: http://localhost:8081 (direct access)
+- **API via Proxy**: http://localhost:3004/api/* (CORS-free)
+- **PostgreSQL**: localhost:5433 (mapped from 5432)
+- **RabbitMQ Management**: http://localhost:15672
+- **Health Check**: http://localhost:8081/health
+
+### Local Development (`make dev-local`)
+- **Frontend**: http://localhost:3004 (React dev server)
+- **Backend API**: http://localhost:8081 (Go server)
+- **PostgreSQL**: localhost:5433 (Docker container)
+- **RabbitMQ**: localhost:5672 (Docker container)
 
 ## Dependencies to Include
 

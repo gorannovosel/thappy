@@ -83,7 +83,9 @@ thappy/
 │   ├── 000004_create_articles_table.up.sql
 │   ├── 000004_create_articles_table.down.sql
 │   ├── 000005_add_sample_therapists.up.sql
-│   └── 000005_add_sample_therapists.down.sql
+│   ├── 000005_add_sample_therapists.down.sql
+│   ├── 000006_add_sample_therapies.up.sql      # 12 comprehensive therapy types
+│   └── 000006_add_sample_therapies.down.sql
 │
 ├── test/                          # Go backend tests
 │   ├── integration/              # Integration tests
@@ -174,17 +176,26 @@ thappy/
 │   ├── package.json          # Frontend dependencies and scripts (pnpm)
 │   ├── pnpm-lock.yaml        # pnpm dependency lock file
 │   ├── tsconfig.json         # TypeScript configuration
+│   ├── Dockerfile            # Multi-stage React build with nginx
+│   ├── nginx.conf            # Nginx proxy configuration for API routing
 │   ├── debug-api.js          # Debugging utility for API calls
 │   ├── screenshot.js         # Screenshot utility for testing
+│   ├── .env.development      # Local development API URL (port 8081)
+│   ├── .env.development.docker # Docker development API URL (proxy)
+│   ├── .env.production       # Production API URL
 │   └── .env.local           # Frontend environment variables
 │
 ├── .github/
 │   └── workflows/              # GitHub Actions
 │       └── ci.yml
 │
-├── docker-compose.yml          # Local development environment
-├── Dockerfile                  # Container image definition
-├── Makefile                   # Common tasks
+├── docker-compose.yml          # Default (local development environment)
+├── docker-compose.local.yml    # Explicit local development setup
+├── docker-compose.prod.yml     # Production environment configuration
+├── DOCKER_ENVIRONMENTS.md      # Docker setup documentation
+├── Dockerfile                  # Go backend container image definition
+├── Makefile                   # Professional tasks (30 essential commands)
+├── .env.prod.example          # Production environment template
 ├── go.mod                     # Go dependencies
 ├── go.sum                     # Dependency checksums
 ├── .env.example               # Environment variables template
