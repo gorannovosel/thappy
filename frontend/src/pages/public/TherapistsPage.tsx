@@ -78,7 +78,7 @@ const TherapistsPage: React.FC = () => {
             margin: '0 auto var(--spacing-lg) auto'
           }}>
             <img
-              src="/playtime.png"
+              src="/sensory-play.png"
               alt="Child playing with toys"
               style={{
                 width: '100%',
