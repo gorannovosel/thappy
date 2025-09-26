@@ -485,14 +485,14 @@ type ArticleResponse struct {
 }
 
 type ArticleSummaryResponse struct {
-	ID            string    `json:"id"`
-	Title         string    `json:"title"`
-	Author        string    `json:"author"`
-	PublishedDate time.Time `json:"published_date"`
-	Category      string    `json:"category"`
-	Slug          string    `json:"slug"`
-	IsPublished   bool      `json:"is_published"`
-	ContentPreview string   `json:"content_preview"`
+	ID             string    `json:"id"`
+	Title          string    `json:"title"`
+	Author         string    `json:"author"`
+	PublishedDate  time.Time `json:"published_date"`
+	Category       string    `json:"category"`
+	Slug           string    `json:"slug"`
+	IsPublished    bool      `json:"is_published"`
+	ContentPreview string    `json:"content_preview"`
 }
 
 type CreateArticleResponse struct {

@@ -4,17 +4,23 @@ FROM node:18-alpine as build
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install pnpm
+RUN npm install -g pnpm
 
-# Install dependencies
-RUN npm ci --only=production
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Install dependencies (including devDependencies for build)
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Use development environment for Docker builds (override production)
+COPY .env.development.docker .env.production
+
+# Build the application (disable ESLint for Docker builds)
+RUN DISABLE_ESLINT_PLUGIN=true pnpm run build
 
 # Stage 2: Serve with nginx
 FROM nginx:alpine

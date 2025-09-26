@@ -3,6 +3,7 @@ module github.com/goran/thappy
 go 1.24.6
 
 require (
+	github.com/gorilla/mux v1.8.1
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/joho/godotenv v1.5.1
 	github.com/rabbitmq/amqp091-go v1.10.0

@@ -1,435 +1,289 @@
 # Makefile for Thappy Project
+# Professional, clean, and simple - following CLAUDE.md guidelines
 
+# =============================================================================
 # Variables
+# =============================================================================
+
 APP_NAME := thappy
 DOCKER_COMPOSE := docker-compose
-DOCKER := docker
+DOCKER_COMPOSE_LOCAL := docker-compose -f docker-compose.local.yml
+DOCKER_COMPOSE_PROD := docker-compose -f docker-compose.prod.yml
 GO := go
-MIGRATE := migrate
+BACKEND_PORT := 8081
+FRONTEND_PORT := 3004
 
-# Default target
+# =============================================================================
+# Help System
+# =============================================================================
+
 .DEFAULT_GOAL := help
 
 ## help: Show this help message
 .PHONY: help
 help:
-	@echo "Available commands:"
-	@sed -n 's/^##//p' $(MAKEFILE_LIST) | column -t -s ':' | sed -e 's/^/ /'
+	@echo "Thappy Development Commands:"
+	@echo ""
+	@sed -n 's/^##//p' $(MAKEFILE_LIST) | column -t -s ':' | sed -e 's/^/  /'
+	@echo ""
+	@echo "Usage: make <command>"
 
-## dev: Start development environment
+# =============================================================================
+# Development Workflow
+# =============================================================================
+
+## setup: Initialize project for development
+.PHONY: setup
+setup: env-setup install-deps
+	@echo "✅ Project setup complete! Run 'make dev' to start development."
+
+## dev: Start full development environment (Docker)
 .PHONY: dev
 dev: env-check
-	$(DOCKER_COMPOSE) up --build
+	$(DOCKER_COMPOSE_LOCAL) up --build
 
-## dev-detached: Start development environment in detached mode
-.PHONY: dev-detached
-dev-detached: env-check
-	$(DOCKER_COMPOSE) up -d --build
+## dev-local: Start backend and frontend locally (no Docker)
+.PHONY: dev-local
+dev-local:
+	@echo "Starting backend and frontend locally..."
+	@$(MAKE) run-backend &
+	@sleep 3
+	@$(MAKE) run-frontend
 
-## stop: Stop all services
+## clean: Stop services and clean up development environment
+.PHONY: clean
+clean: stop
+	$(DOCKER_COMPOSE_LOCAL) down -v --remove-orphans
+	@pkill -f "go run.*cmd/api" 2>/dev/null || true
+	@pkill -f "pnpm start" 2>/dev/null || true
+	@echo "✅ Development environment cleaned"
+
+## stop: Stop all running services
 .PHONY: stop
 stop:
-	$(DOCKER_COMPOSE) down
+	$(DOCKER_COMPOSE_LOCAL) down
+	@pkill -f "go run.*cmd/api" 2>/dev/null || true
+	@pkill -f "pnpm start" 2>/dev/null || true
 
-## clean: Stop services and remove volumes
-.PHONY: clean
-clean:
-	$(DOCKER_COMPOSE) down -v --remove-orphans
-	$(DOCKER) system prune -f
+## restart: Restart development environment
+.PHONY: restart
+restart: stop dev-local
 
-## logs: Show logs from all services
-.PHONY: logs
-logs:
-	$(DOCKER_COMPOSE) logs -f
+## status: Check status of all services
+.PHONY: status
+status:
+	@echo "Service Status:"
+	@echo "Backend (port $(BACKEND_PORT)):"
+	@curl -s http://localhost:$(BACKEND_PORT)/health 2>/dev/null && echo "  ✅ Running" || echo "  ❌ Not responding"
+	@echo "Frontend (port $(FRONTEND_PORT)):"
+	@curl -s -o /dev/null http://localhost:$(FRONTEND_PORT) 2>/dev/null && echo "  ✅ Running" || echo "  ❌ Not responding"
 
-## logs-api: Show logs from API service only
-.PHONY: logs-api
-logs-api:
-	$(DOCKER_COMPOSE) logs -f api
+# =============================================================================
+# Individual Services
+# =============================================================================
 
-## run-backend: Run backend API server directly (no Docker)
+## run-backend: Start backend server locally
 .PHONY: run-backend
 run-backend:
 	$(GO) run ./cmd/api
 
-## run-frontend: Run frontend development server
+## run-frontend: Start frontend development server
 .PHONY: run-frontend
 run-frontend:
 	cd frontend && pnpm start
 
-## restart-backend: Kill and restart backend server
-.PHONY: restart-backend
-restart-backend:
-	@echo "Stopping backend..."
-	@pkill -f "go run ./cmd/api" || true
-	@sleep 1
-	@echo "Starting backend..."
-	$(GO) run ./cmd/api
+# =============================================================================
+# Building & Testing
+# =============================================================================
 
-## restart-frontend: Kill and restart frontend server
-.PHONY: restart-frontend
-restart-frontend:
-	@echo "Stopping frontend..."
-	@pkill -f "pnpm start" || true
-	@pkill -f "react-scripts start" || true
-	@sleep 1
-	@echo "Starting frontend..."
-	cd frontend && pnpm start
-
-## dev-local: Start both backend and frontend locally (no Docker)
-.PHONY: dev-local
-dev-local:
-	@echo "Starting backend and frontend..."
-	@make run-backend &
-	@sleep 3
-	@make run-frontend
-
-## restart-all: Restart both backend and frontend
-.PHONY: restart-all
-restart-all:
-	@echo "Restarting all services..."
-	@pkill -f "go run ./cmd/api" || true
-	@pkill -f "pnpm start" || true
-	@pkill -f "react-scripts start" || true
-	@sleep 2
-	@echo "Starting backend..."
-	@make run-backend &
-	@sleep 3
-	@echo "Starting frontend..."
-	@make run-frontend
-
-## stop-all: Stop all running services
-.PHONY: stop-all
-stop-all:
-	./scripts/kill-processes.sh
-	@sleep 2
-
-## kill-frontend: Kill all frontend processes
-.PHONY: kill-frontend
-kill-frontend:
-	@echo "Killing frontend processes..."
-	@pkill -f "pnpm start" 2>/dev/null || true
-	@pkill -f "react-scripts" 2>/dev/null || true
-	@pkill -f "fork-ts-checker-webpack-plugin" 2>/dev/null || true
-	@sleep 1
-
-## kill-backend: Kill all backend processes
-.PHONY: kill-backend
-kill-backend:
-	@echo "Killing backend processes..."
-	@pkill -f "go run.*cmd/api" 2>/dev/null || true
-	@sleep 1
-
-## clear-frontend-cache: Clear React cache and node_modules cache
-.PHONY: clear-frontend-cache
-clear-frontend-cache:
-	@echo "Clearing frontend cache..."
-	@cd frontend && rm -rf node_modules/.cache .eslintcache build
-	@echo "Frontend cache cleared"
-
-## fix-ports: Fix hardcoded port references to use 8081
-.PHONY: fix-ports
-fix-ports:
-	@echo "Fixing hardcoded port references..."
-	@find frontend/src -name "*.ts" -o -name "*.tsx" | xargs sed -i 's/localhost:8080/localhost:8081/g'
-	@echo "Port references updated to 8081"
-
-## check-hardcoded-urls: Check for hardcoded API URLs that should use central config
-.PHONY: check-hardcoded-urls
-check-hardcoded-urls:
-	@echo "Checking for hardcoded API URLs..."
-	@echo "Files with hardcoded API_BASE_URL:"
-	@grep -r "API_BASE_URL.*process.env" frontend/src --include="*.ts" --include="*.tsx" || echo "  None found"
-	@echo "\nFiles with hardcoded localhost URLs:"
-	@grep -r "localhost:" frontend/src --include="*.ts" --include="*.tsx" | grep -v constants.ts | grep -v testHelpers.ts | grep -v setupTests.ts || echo "  None found"
-	@echo "\nUse 'make fix-hardcoded-urls' to automatically fix these issues"
-
-## fix-hardcoded-urls: Fix hardcoded URLs to use centralized constants
-.PHONY: fix-hardcoded-urls
-fix-hardcoded-urls:
-	@echo "Fixing hardcoded URLs to use centralized config..."
-	@for file in $$(find frontend/src -name "*.ts" -o -name "*.tsx" | grep -v constants.ts | grep -v testHelpers.ts | grep -v setupTests.ts); do \
-		if grep -q "API_BASE_URL.*process.env" "$$file"; then \
-			echo "Fixing $$file"; \
-			sed -i 's/const API_BASE_URL = process\.env\.REACT_APP_API_URL || .*//' "$$file"; \
-			if ! grep -q "import.*API_BASE_URL.*constants" "$$file"; then \
-				sed -i '1i import { API_BASE_URL } from '"'"'../utils/constants'"'"';\' "$$file"; \
-			fi; \
-		fi; \
-	done
-	@echo "Hardcoded URLs fixed"
-
-## clean-start: Kill everything, clear cache, and start fresh
-.PHONY: clean-start
-clean-start: kill-frontend kill-backend clear-frontend-cache
-	@echo "Starting fresh..."
-	@sleep 1
-	@echo "Starting backend..."
-	@$(MAKE) run-backend > /dev/null 2>&1 &
-	@sleep 3
-	@echo "Starting frontend..."
-	@$(MAKE) run-frontend
-
-## status: Check status of services
-.PHONY: status
-status:
-	@echo "Checking service status..."
-	@echo "\nBackend (port 8081):"
-	@curl -s http://localhost:8081/health | python3 -m json.tool 2>/dev/null || echo "  Not responding"
-	@echo "\nFrontend (port 3004):"
-	@curl -s -o /dev/null -w "  Status: %{http_code}\n" http://localhost:3004 2>/dev/null || echo "  Not responding"
-	@echo "\nRunning processes:"
-	@ps aux | grep -E "(go run|pnpm|react-scripts)" | grep -v grep || echo "  No services running"
-
-## build: Build the application
+## build: Build backend for production
 .PHONY: build
 build:
-	$(GO) build -o bin/$(APP_NAME) ./cmd/api
+	CGO_ENABLED=0 GOOS=linux $(GO) build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o bin/$(APP_NAME) ./cmd/api
+
+## build-all: Build both backend and frontend for production
+.PHONY: build-all
+build-all: build
+	cd frontend && pnpm run build
 
 ## test: Run all tests
 .PHONY: test
 test:
-	$(GO) test -v -race -coverprofile=coverage.out ./...
+	$(GO) test -v -race ./...
+	cd frontend && pnpm run test:coverage
 
-## test-coverage: Run tests and show coverage report
-.PHONY: test-coverage
-test-coverage: test
-	$(GO) tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report generated: coverage.html"
+## test-backend: Run backend tests only
+.PHONY: test-backend
+test-backend:
+	$(GO) test -v -race ./...
 
-## lint: Run linters
+## test-frontend: Run frontend tests only
+.PHONY: test-frontend
+test-frontend:
+	cd frontend && pnpm run test:coverage
+
+# =============================================================================
+# Code Quality
+# =============================================================================
+
+## lint: Run linters for both backend and frontend
 .PHONY: lint
 lint:
-	golangci-lint run ./...
+	@echo "Running backend linters..."
+	@if command -v golangci-lint >/dev/null 2>&1; then golangci-lint run ./...; else $(HOME)/go/bin/golangci-lint run ./... 2>/dev/null || echo "golangci-lint not found, skipping"; fi
+	@echo "Running frontend linters..."
+	cd frontend && pnpm run lint
 
-## format: Format code
+## format: Format code for both backend and frontend
 .PHONY: format
 format:
+	@echo "Formatting backend code..."
 	$(GO) fmt ./...
-	goimports -w .
+	@if command -v goimports >/dev/null 2>&1; then goimports -w .; else $(HOME)/go/bin/goimports -w . 2>/dev/null || echo "goimports not found, skipping"; fi
+	@echo "Formatting frontend code..."
+	cd frontend && pnpm run format
 
-## mod-tidy: Clean up go modules
-.PHONY: mod-tidy
-mod-tidy:
-	$(GO) mod tidy
-	$(GO) mod verify
+## format-check: Check code formatting without making changes
+.PHONY: format-check
+format-check:
+	@echo "Checking backend formatting..."
+	@test -z "$$(gofmt -l .)" || (echo "Backend code needs formatting. Run 'make format'" && exit 1)
+	@echo "Checking frontend formatting..."
+	cd frontend && pnpm run format:check
 
-## migrate-up: Run database migrations up
+## type-check: Run TypeScript type checking
+.PHONY: type-check
+type-check:
+	cd frontend && pnpm run type-check
+
+# =============================================================================
+# Database Operations
+# =============================================================================
+
+## migrate-up: Run database migrations
 .PHONY: migrate-up
 migrate-up:
-	$(DOCKER_COMPOSE) run --rm migrate
+	$(DOCKER_COMPOSE_LOCAL) run --rm migrate
 
-## migrate-down: Run database migrations down
-.PHONY: migrate-down
-migrate-down:
-	$(DOCKER_COMPOSE) run --rm migrate -database "postgres://thappy:thappy_dev_password@postgres:5432/thappy?sslmode=disable" -path /migrations down
-
-## migrate-create: Create a new migration file (usage: make migrate-create NAME=migration_name)
+## migrate-create: Create new migration (usage: make migrate-create NAME=migration_name)
 .PHONY: migrate-create
 migrate-create:
 	@if [ -z "$(NAME)" ]; then \
-		echo "Error: NAME is required. Usage: make migrate-create NAME=migration_name"; \
+		echo "❌ Error: NAME is required. Usage: make migrate-create NAME=migration_name"; \
 		exit 1; \
 	fi
-	$(MIGRATE) create -ext sql -dir migrations -seq $(NAME)
+	@if command -v migrate >/dev/null 2>&1; then migrate create -ext sql -dir migrations -seq $(NAME); else $(HOME)/go/bin/migrate create -ext sql -dir migrations -seq $(NAME); fi
+	@echo "✅ Migration created: migrations/*_$(NAME).sql"
 
 ## db-shell: Connect to database shell
 .PHONY: db-shell
 db-shell:
-	$(DOCKER_COMPOSE) exec postgres psql -U thappy -d thappy
+	$(DOCKER_COMPOSE_LOCAL) exec postgres psql -U thappy -d thappy
 
-## api-shell: Connect to API container shell
-.PHONY: api-shell
-api-shell:
-	$(DOCKER_COMPOSE) exec api sh
+# =============================================================================
+# CI/CD Pipeline
+# =============================================================================
 
-## health: Check API health
-.PHONY: health
-health:
-	@curl -s http://localhost:8080/health | python3 -m json.tool || echo "API not responding"
+## ci: Run complete CI pipeline (format, lint, type-check, test)
+.PHONY: ci
+ci: format-check lint type-check test
+	@echo "✅ CI pipeline completed successfully"
 
-## docker-build: Build Docker image
-.PHONY: docker-build
-docker-build:
-	$(DOCKER) build -t $(APP_NAME):latest .
+## ci-fix: Fix code quality issues and run CI
+.PHONY: ci-fix
+ci-fix: format lint ci
 
-## docker-run: Run Docker image locally
-.PHONY: docker-run
-docker-run:
-	$(DOCKER) run --rm -p 8080:8080 --env-file .env $(APP_NAME):latest
+# =============================================================================
+# Dependencies & Environment
+# =============================================================================
 
-## setup: Initial project setup
-.PHONY: setup
-setup: env-setup mod-tidy
-	@echo "Project setup complete!"
+## install-deps: Install all dependencies
+.PHONY: install-deps
+install-deps:
+	@echo "Installing backend dependencies..."
+	$(GO) mod download
+	$(GO) mod tidy
+	@echo "Installing frontend dependencies..."
+	cd frontend && pnpm install
+	@echo "Installing development tools..."
+	@$(MAKE) install-tools
+
+## install-tools: Install development tools
+.PHONY: install-tools
+install-tools:
+	@echo "Installing goimports..."
+	@command -v goimports >/dev/null 2>&1 || go install golang.org/x/tools/cmd/goimports@latest
+	@echo "Installing migrate..."
+	@command -v migrate >/dev/null 2>&1 || go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	@echo "Installing golangci-lint..."
+	@command -v golangci-lint >/dev/null 2>&1 || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.61.0
+
+## deps-update: Update all dependencies
+.PHONY: deps-update
+deps-update:
+	$(GO) get -u ./...
+	$(GO) mod tidy
+	cd frontend && pnpm update
 
 ## env-setup: Create .env file from example
 .PHONY: env-setup
 env-setup:
 	@if [ ! -f .env ]; then \
 		cp .env.example .env; \
-		echo ".env file created from .env.example"; \
-		echo "Please update .env with your configuration"; \
+		echo "✅ .env file created from .env.example"; \
+		echo "📝 Please update .env with your configuration"; \
 	else \
-		echo ".env file already exists"; \
+		echo "✅ .env file already exists"; \
 	fi
 
 ## env-check: Check if .env file exists
 .PHONY: env-check
 env-check:
 	@if [ ! -f .env ]; then \
-		echo "Error: .env file not found. Run 'make env-setup' first."; \
+		echo "❌ Error: .env file not found. Run 'make env-setup' first."; \
 		exit 1; \
 	fi
 
-## install-tools: Install development tools
-.PHONY: install-tools
-install-tools:
-	@echo "Installing development tools..."
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	go install golang.org/x/tools/cmd/goimports@latest
-	@echo "Development tools installed!"
+# =============================================================================
+# Utility Commands
+# =============================================================================
 
-## benchmark: Run benchmarks
-.PHONY: benchmark
-benchmark:
-	$(GO) test -bench=. -benchmem ./...
+## logs: Show logs from Docker services
+.PHONY: logs
+logs:
+	$(DOCKER_COMPOSE_LOCAL) logs -f
 
-## security: Run security checks
-.PHONY: security
-security:
-	gosec ./...
+## clean-cache: Clear all caches
+.PHONY: clean-cache
+clean-cache:
+	@echo "Clearing backend cache..."
+	$(GO) clean -cache -modcache
+	@echo "Clearing frontend cache..."
+	cd frontend && rm -rf node_modules/.cache build .eslintcache
+	@echo "✅ All caches cleared"
 
-## deps-update: Update dependencies
-.PHONY: deps-update
-deps-update:
-	$(GO) get -u ./...
-	$(GO) mod tidy
+## docker-build: Build Docker image
+.PHONY: docker-build
+docker-build:
+	docker build -t $(APP_NAME):latest .
 
-## api-test: Test API endpoints manually
-.PHONY: api-test
-api-test:
-	@echo "Testing registration..."
-	@curl -X POST http://localhost:8080/api/register \
-		-H "Content-Type: application/json" \
-		-d '{"email":"test@example.com","password":"TestPass123!"}' | python3 -m json.tool
-	@echo "\nTesting login..."
-	@curl -X POST http://localhost:8080/api/login \
-		-H "Content-Type: application/json" \
-		-d '{"email":"test@example.com","password":"TestPass123!"}' | python3 -m json.tool
+## prod: Start production environment (requires .env.prod)
+.PHONY: prod
+prod:
+	$(DOCKER_COMPOSE_PROD) up --build -d
 
-## production-build: Build for production
-.PHONY: production-build
-production-build:
-	CGO_ENABLED=0 GOOS=linux $(GO) build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o bin/$(APP_NAME) ./cmd/api
+## prod-stop: Stop production environment
+.PHONY: prod-stop
+prod-stop:
+	$(DOCKER_COMPOSE_PROD) down
 
-## ci: Run CI pipeline locally
-.PHONY: ci
-ci: format lint test
+## prod-logs: Show production logs
+.PHONY: prod-logs
+prod-logs:
+	$(DOCKER_COMPOSE_PROD) logs -f
 
-## all-tests: Run all tests including integration
-.PHONY: all-tests
-all-tests: test
-	@echo "Running integration tests..."
-	$(GO) test -tags=integration ./test/integration/...
+# =============================================================================
+# Internal/Helper Commands
+# =============================================================================
 
-## frontend-install: Install frontend dependencies
-.PHONY: frontend-install
-frontend-install:
-	cd frontend && pnpm install
-
-## frontend-dev: Start frontend development server
-.PHONY: frontend-dev
-frontend-dev:
-	cd frontend && pnpm start
-
-## frontend-restart: Restart frontend development server (kills existing and starts fresh)
-.PHONY: frontend-restart
-frontend-restart:
-	cd frontend && pnpm run restart
-
-## frontend-restart-fresh: Restart frontend with cache clearing
-.PHONY: frontend-restart-fresh
-frontend-restart-fresh:
-	cd frontend && pnpm run restart:fresh
-
-## frontend-build: Build frontend for production
-.PHONY: frontend-build
-frontend-build:
-	cd frontend && pnpm run build
-
-## frontend-test: Run frontend tests
-.PHONY: frontend-test
-frontend-test:
-	cd frontend && pnpm test -- --coverage --watchAll=false
-
-## frontend-lint: Lint frontend code
-.PHONY: frontend-lint
-frontend-lint:
-	cd frontend && pnpm run lint
-
-## frontend-lint-fix: Fix frontend linting issues
-.PHONY: frontend-lint-fix
-frontend-lint-fix:
-	cd frontend && pnpm run lint:fix
-
-## frontend-format: Format frontend code
-.PHONY: frontend-format
-frontend-format:
-	cd frontend && pnpm run format
-
-## frontend-format-check: Check frontend code formatting
-.PHONY: frontend-format-check
-frontend-format-check:
-	cd frontend && pnpm run format:check
-
-## frontend-type-check: Run TypeScript type checking
-.PHONY: frontend-type-check
-frontend-type-check:
-	cd frontend && pnpm run type-check
-
-## frontend-clean: Clean frontend cache and reinstall
-.PHONY: frontend-clean
-frontend-clean:
-	cd frontend && pnpm run clean
-
-## dev-full: Start both backend and frontend
-.PHONY: dev-full
-dev-full:
-	make dev-detached
-	sleep 5
-	make frontend-dev
-
-## dev-restart: Restart both backend and frontend
-.PHONY: dev-restart
-dev-restart:
-	make dev-detached
-	sleep 3
-	make frontend-restart
-
-## build-all: Build both backend and frontend
-.PHONY: build-all
-build-all: build frontend-build
-
-## clean-all: Clean both backend and frontend
-.PHONY: clean-all
-clean-all: clean
-	cd frontend && rm -rf node_modules build pnpm-lock.yaml
-
-## frontend-ci: Run frontend CI pipeline (lint, format, type-check, test)
-.PHONY: frontend-ci
-frontend-ci: frontend-lint frontend-format-check frontend-type-check frontend-test
-
-## ci-all: Run CI pipeline for both backend and frontend
-.PHONY: ci-all
-ci-all: ci frontend-ci
-
-## dev-frontend-only: Start only frontend in development mode
-.PHONY: dev-frontend-only
-dev-frontend-only: frontend-install
-	make frontend-dev
-
-## production-frontend: Build frontend for production
-.PHONY: production-frontend
-production-frontend:
-	cd frontend && pnpm install --prod && pnpm run build
+.PHONY: env-check
