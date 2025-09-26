@@ -1,179 +1,136 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../../styles/global.module.css';
 import Footer from '../../components/Footer';
+import { articleApi, ARTICLE_CATEGORIES, formatCategoryName } from '../../services/article';
+import { ArticleSummaryResponse } from '../../types/api';
 
-interface Article {
-  id: string;
-  title: string;
-  excerpt: string;
-  category: string;
-  readTime: string;
-  publishedDate: string;
-  author?: string;
-  featured?: boolean;
-  image?: string;
-}
-
-const sampleArticles: Article[] = [
-  {
-    id: '1',
-    title: 'Early Signs of Speech Delay in Children',
-    excerpt: 'Learn to recognize the warning signs of speech delays and when to seek professional help for your child.',
-    category: 'Speech Development',
-    readTime: '5 min read',
-    publishedDate: '2024-01-15',
-    author: 'Dr. Sarah Johnson, SLP',
-    featured: true,
-    image: '/article-images/speech-delay.jpg'
-  },
-  {
-    id: '2',
-    title: 'Supporting Your Child Through Occupational Therapy',
-    excerpt: 'Discover how to reinforce occupational therapy goals at home and create a supportive environment for your child.',
-    category: 'Occupational Therapy',
-    readTime: '7 min read',
-    publishedDate: '2024-01-12',
-    author: 'Maria Rodriguez, OTR/L',
-    image: '/article-images/occupational-therapy.jpg'
-  },
-  {
-    id: '3',
-    title: 'Building Social Skills: Activities for Shy Children',
-    excerpt: 'Practical strategies and fun activities to help shy children develop confidence and social skills.',
-    category: 'Social Development',
-    readTime: '6 min read',
-    publishedDate: '2024-01-10',
-    author: 'Dr. Michael Chen, Child Psychologist',
-    image: '/article-images/social-skills.jpg'
-  },
-  {
-    id: '4',
-    title: 'Understanding Sensory Processing in Children',
-    excerpt: 'A comprehensive guide to sensory processing differences and how they affect daily life.',
-    category: 'Sensory Development',
-    readTime: '8 min read',
-    publishedDate: '2024-01-08',
-    author: 'Lisa Thompson, OTR/L, SIT',
-    featured: true,
-    image: '/article-images/sensory-processing.jpg'
-  },
-  {
-    id: '5',
-    title: 'Creating a Calming Environment at Home',
-    excerpt: 'Tips for designing spaces that promote relaxation and emotional regulation for children with special needs.',
-    category: 'Home Environment',
-    readTime: '4 min read',
-    publishedDate: '2024-01-05',
-    author: 'Jennifer Walsh, Interior Designer',
-    image: '/article-images/calming-environment.jpg'
-  },
-  {
-    id: '6',
-    title: "Working with Your Child's School: A Parent's Guide",
-    excerpt: "Navigate the educational system and advocate effectively for your child's needs in school.",
-    category: 'Education',
-    readTime: '10 min read',
-    publishedDate: '2024-01-03',
-    author: 'Robert Kim, Special Education Advocate',
-    image: '/article-images/school-advocacy.jpg'
-  },
-  {
-    id: '7',
-    title: 'The Power of Play Therapy for Children',
-    excerpt: 'Explore how play therapy can help children express emotions and develop coping skills in a natural, engaging way.',
-    category: 'Therapy Approaches',
-    readTime: '6 min read',
-    publishedDate: '2023-12-28',
-    author: 'Dr. Amanda Foster, LMFT',
-    image: '/article-images/play-therapy.jpg'
-  },
-  {
-    id: '8',
-    title: 'Nutrition and Behavior: Making the Connection',
-    excerpt: 'Discover how dietary choices can impact your child\'s behavior, attention, and overall well-being.',
-    category: 'Health & Wellness',
-    readTime: '5 min read',
-    publishedDate: '2023-12-25',
-    author: 'Dr. Patricia Lee, Pediatric Nutritionist',
-    featured: true,
-    image: '/article-images/nutrition-behavior.jpg'
-  },
-  {
-    id: '9',
-    title: 'Building Independence Through Life Skills',
-    excerpt: 'Age-appropriate strategies for teaching daily living skills that promote independence and confidence.',
-    category: 'Life Skills',
-    readTime: '7 min read',
-    publishedDate: '2023-12-20',
-    author: 'Thomas Anderson, Behavior Analyst',
-    image: '/article-images/life-skills.jpg'
-  },
-  {
-    id: '10',
-    title: 'Supporting Siblings of Children with Special Needs',
-    excerpt: 'Practical tips for ensuring all children in the family feel valued, supported, and understood.',
-    category: 'Family Dynamics',
-    readTime: '8 min read',
-    publishedDate: '2023-12-15',
-    author: 'Dr. Rachel Martinez, Family Therapist',
-    image: '/article-images/sibling-support.jpg'
-  },
-  {
-    id: '11',
-    title: 'Technology Tools for Learning and Communication',
-    excerpt: 'Explore assistive technologies and apps that can enhance learning and communication for children with special needs.',
-    category: 'Technology',
-    readTime: '6 min read',
-    publishedDate: '2023-12-10',
-    author: 'Alex Thompson, Assistive Technology Specialist',
-    image: '/article-images/assistive-technology.jpg'
-  },
-  {
-    id: '12',
-    title: 'Managing Meltdowns: Prevention and Response Strategies',
-    excerpt: 'Evidence-based approaches for preventing meltdowns and responding effectively when they occur.',
-    category: 'Behavior Management',
-    readTime: '9 min read',
-    publishedDate: '2023-12-05',
-    author: 'Dr. Kevin Brown, Behavioral Pediatrician',
-    image: '/article-images/managing-meltdowns.jpg'
-  }
-];
+// Calculate estimated read time based on content length
+const calculateReadTime = (content: string): string => {
+  const wordsPerMinute = 200;
+  const wordCount = content.split(' ').length;
+  const minutes = Math.ceil(wordCount / wordsPerMinute);
+  return `${minutes} min read`;
+};
 
 const categories = [
   'All Articles',
-  'Speech Development',
-  'Occupational Therapy',
-  'Social Development',
-  'Sensory Development',
-  'Home Environment',
-  'Education',
-  'Therapy Approaches',
-  'Health & Wellness',
-  'Life Skills',
-  'Family Dynamics',
-  'Technology',
-  'Behavior Management'
+  ...Object.values(ARTICLE_CATEGORIES).map(formatCategoryName)
 ];
 
 const ArticlesPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All Articles');
   const [searchTerm, setSearchTerm] = useState('');
+  const [articles, setArticles] = useState<ArticleSummaryResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredArticles = sampleArticles.filter(article => {
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await articleApi.getArticles(true); // Only published articles
+        setArticles(response.articles);
+      } catch (err) {
+        console.error('Failed to load articles:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load articles');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadArticles();
+  }, []);
+
+  const filteredArticles = articles.filter(article => {
+    const formattedCategory = formatCategoryName(article.category);
     const matchesCategory =
       selectedCategory === 'All Articles' ||
-      article.category === selectedCategory;
+      formattedCategory === selectedCategory;
     const matchesSearch =
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.category.toLowerCase().includes(searchTerm.toLowerCase());
+      article.content_preview.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      formattedCategory.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const featuredArticles = filteredArticles.filter(article => article.featured);
-  const regularArticles = filteredArticles.filter(article => !article.featured);
+  // For featured articles, we'll use the first 3 articles as featured for demo purposes
+  const featuredArticles = filteredArticles.slice(0, 3);
+  const regularArticles = filteredArticles;
+
+  if (loading) {
+    return (
+      <div>
+        <div className={styles.container}>
+          <div style={{
+            textAlign: 'center',
+            padding: 'var(--spacing-2xl)',
+            minHeight: '400px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <div style={{
+              fontSize: '2rem',
+              marginBottom: 'var(--spacing-lg)',
+              color: '#f59e0b'
+            }}>📖</div>
+            <h2 style={{
+              fontSize: 'var(--font-size-xl)',
+              fontWeight: '600',
+              marginBottom: 'var(--spacing-md)',
+              color: '#1f2937'
+            }}>Loading Articles...</h2>
+            <p style={{
+              color: 'var(--color-text-secondary)',
+              fontSize: 'var(--font-size-base)'
+            }}>Please wait while we fetch the latest articles for you.</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <div className={styles.container}>
+          <div className={styles.card} style={{
+            textAlign: 'center',
+            margin: 'var(--spacing-2xl) auto',
+            maxWidth: '600px'
+          }}>
+            <div style={{
+              fontSize: '2rem',
+              marginBottom: 'var(--spacing-lg)',
+              color: '#ef4444'
+            }}>⚠️</div>
+            <h2 style={{
+              fontSize: 'var(--font-size-xl)',
+              fontWeight: '600',
+              marginBottom: 'var(--spacing-md)',
+              color: '#1f2937'
+            }}>Failed to Load Articles</h2>
+            <p style={{
+              color: 'var(--color-text-secondary)',
+              marginBottom: 'var(--spacing-lg)',
+              fontSize: 'var(--font-size-base)'
+            }}>{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className={styles.btnPrimary}
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -350,7 +307,7 @@ const ArticlesPage: React.FC = () => {
                           fontSize: '2rem',
                           marginBottom: 'var(--spacing-xs)'
                         }}>📖</div>
-                        {article.image?.split('/').pop()?.replace('.jpg', '')}
+                        Article Image
                       </div>
                     </div>
 
@@ -361,7 +318,7 @@ const ArticlesPage: React.FC = () => {
                         fontSize: 'var(--font-size-sm)',
                         fontWeight: 'var(--font-weight-medium)',
                       }}>
-                        {article.category}
+                        {formatCategoryName(article.category)}
                       </span>
                     </div>
 
@@ -374,7 +331,7 @@ const ArticlesPage: React.FC = () => {
                       color: '#1f2937'
                     }}>
                       <Link
-                        to={`/articles/${article.id}`}
+                        to={`/articles/${article.slug}`}
                         style={{
                           color: 'inherit',
                           textDecoration: 'none'
@@ -390,7 +347,7 @@ const ArticlesPage: React.FC = () => {
                       marginBottom: 'var(--spacing-lg)',
                       lineHeight: 'var(--line-height-relaxed)',
                     }}>
-                      {article.excerpt}
+                      {article.content_preview}
                     </p>
 
                     {/* Meta info */}
@@ -404,26 +361,24 @@ const ArticlesPage: React.FC = () => {
                       paddingTop: 'var(--spacing-sm)',
                       borderTop: '1px solid var(--color-border)'
                     }}>
-                      <span>{article.readTime}</span>
+                      <span>{calculateReadTime(article.content_preview)}</span>
                       <span>
-                        {new Date(article.publishedDate).toLocaleDateString()}
+                        {new Date(article.published_date).toLocaleDateString()}
                       </span>
                     </div>
 
                     {/* Author */}
-                    {article.author && (
-                      <div style={{
-                        fontSize: 'var(--font-size-sm)',
-                        color: 'var(--color-text-muted)',
-                        marginBottom: 'var(--spacing-md)'
-                      }}>
-                        By {article.author}
-                      </div>
-                    )}
+                    <div style={{
+                      fontSize: 'var(--font-size-sm)',
+                      color: 'var(--color-text-muted)',
+                      marginBottom: 'var(--spacing-md)'
+                    }}>
+                      By {article.author}
+                    </div>
 
                     {/* Read Article Button */}
                     <Link
-                      to={`/articles/${article.id}`}
+                      to={`/articles/${article.slug}`}
                       className={styles.btnPrimary}
                       style={{ width: '100%' }}
                     >
@@ -517,7 +472,7 @@ const ArticlesPage: React.FC = () => {
                         fontSize: '1.5rem',
                         marginBottom: 'var(--spacing-xs)'
                       }}>📄</div>
-                      {article.image?.split('/').pop()?.replace('.jpg', '')}
+                      Article Image
                     </div>
                   </div>
 
@@ -528,7 +483,7 @@ const ArticlesPage: React.FC = () => {
                       fontSize: 'var(--font-size-sm)',
                       fontWeight: 'var(--font-weight-medium)',
                     }}>
-                      {article.category}
+                      {formatCategoryName(article.category)}
                     </span>
                   </div>
 
@@ -541,7 +496,7 @@ const ArticlesPage: React.FC = () => {
                     color: '#1f2937'
                   }}>
                     <Link
-                      to={`/articles/${article.id}`}
+                      to={`/articles/${article.slug}`}
                       style={{
                         color: 'inherit',
                         textDecoration: 'none'
@@ -562,7 +517,7 @@ const ArticlesPage: React.FC = () => {
                     WebkitBoxOrient: 'vertical',
                     overflow: 'hidden'
                   }}>
-                    {article.excerpt}
+                    {article.content_preview}
                   </p>
 
                   {/* Meta info */}
@@ -576,26 +531,24 @@ const ArticlesPage: React.FC = () => {
                     paddingTop: 'var(--spacing-sm)',
                     borderTop: '1px solid var(--color-border)'
                   }}>
-                    <span>{article.readTime}</span>
+                    <span>{calculateReadTime(article.content_preview)}</span>
                     <span>
-                      {new Date(article.publishedDate).toLocaleDateString()}
+                      {new Date(article.published_date).toLocaleDateString()}
                     </span>
                   </div>
 
                   {/* Author */}
-                  {article.author && (
-                    <div style={{
-                      fontSize: 'var(--font-size-xs)',
-                      color: 'var(--color-text-muted)',
-                      marginBottom: 'var(--spacing-md)'
-                    }}>
-                      By {article.author}
-                    </div>
-                  )}
+                  <div style={{
+                    fontSize: 'var(--font-size-xs)',
+                    color: 'var(--color-text-muted)',
+                    marginBottom: 'var(--spacing-md)'
+                  }}>
+                    By {article.author}
+                  </div>
 
                   {/* Read More Button */}
                   <Link
-                    to={`/articles/${article.id}`}
+                    to={`/articles/${article.slug}`}
                     className={styles.btnSecondary}
                     style={{ width: '100%' }}
                   >

@@ -37,6 +37,38 @@ export interface TherapyResponse {
   updated_at: string;
 }
 
+export interface ArticleResponse {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  published_date: string;
+  category: string;
+  slug: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ArticleSummaryResponse {
+  id: string;
+  title: string;
+  author: string;
+  published_date: string;
+  category: string;
+  slug: string;
+  is_published: boolean;
+  content_preview: string;
+}
+
+export interface ArticleListResponse {
+  articles: ArticleSummaryResponse[];
+}
+
+export interface ArticleDetailResponse {
+  article: ArticleResponse;
+}
+
 // User types
 export type UserRole = 'client' | 'therapist';
 

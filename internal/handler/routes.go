@@ -3,11 +3,11 @@ package handler
 import (
 	"net/http"
 
+	articleDomain "github.com/goran/thappy/internal/domain/article"
 	clientDomain "github.com/goran/thappy/internal/domain/client"
 	therapistDomain "github.com/goran/thappy/internal/domain/therapist"
 	therapyDomain "github.com/goran/thappy/internal/domain/therapy"
 	"github.com/goran/thappy/internal/domain/user"
-	httputil "github.com/goran/thappy/internal/handler/http"
 )
 
 type Router struct {
@@ -15,7 +15,7 @@ type Router struct {
 	clientHandler    *ClientHandler
 	therapistHandler *TherapistHandler
 	therapyHandler   *TherapyHandler
-	authMiddleware   *httputil.AuthMiddleware
+	articleHandler   *ArticleHandler
 }
 
 func NewRouter(
@@ -23,6 +23,7 @@ func NewRouter(
 	clientService clientDomain.ClientService,
 	therapistService therapistDomain.TherapistService,
 	therapyService therapyDomain.Service,
+	articleService articleDomain.Service,
 	tokenService user.TokenService,
 ) *Router {
 	return &Router{
@@ -30,7 +31,7 @@ func NewRouter(
 		clientHandler:    NewClientHandler(clientService),
 		therapistHandler: NewTherapistHandler(therapistService),
 		therapyHandler:   NewTherapyHandler(therapyService),
-		authMiddleware:   httputil.NewAuthMiddleware(tokenService, userService),
+		articleHandler:   NewArticleHandler(articleService),
 	}
 }
 
@@ -41,156 +42,39 @@ func (router *Router) SetupRoutes() http.Handler {
 	mux.HandleFunc("/health", router.healthCheck)
 
 	// Public endpoints (no authentication required)
-	mux.Handle("/api/register", router.applyMiddleware(
-		http.HandlerFunc(router.userHandler.Register),
-		httputil.JSONMiddleware,
-	))
-
-	mux.Handle("/api/register-with-role", router.applyMiddleware(
-		http.HandlerFunc(router.userHandler.RegisterWithRole),
-		httputil.JSONMiddleware,
-	))
-
-	mux.Handle("/api/login", router.applyMiddleware(
-		http.HandlerFunc(router.userHandler.Login),
-		httputil.JSONMiddleware,
-	))
-
-	// General user endpoints (authentication required)
-	mux.Handle("/api/profile", router.applyMiddleware(
-		http.HandlerFunc(router.userHandler.GetProfile),
-		router.authMiddleware.RequireAuth,
-	))
-
-	mux.Handle("/api/profile/update", router.applyMiddleware(
-		http.HandlerFunc(router.userHandler.UpdateProfile),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireAuth,
-	))
-
-	// Client-specific endpoints (client role required)
-	mux.Handle("/api/client/profile", router.applyMiddleware(
-		http.HandlerFunc(router.clientHandler.CreateProfile),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireClientRole,
-	))
-
-	mux.Handle("/api/client/profile/get", router.applyMiddleware(
-		http.HandlerFunc(router.clientHandler.GetProfile),
-		router.authMiddleware.RequireClientRole,
-	))
-
-	mux.Handle("/api/client/profile/personal-info", router.applyMiddleware(
-		http.HandlerFunc(router.clientHandler.UpdatePersonalInfo),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireClientRole,
-	))
-
-	mux.Handle("/api/client/profile/contact-info", router.applyMiddleware(
-		http.HandlerFunc(router.clientHandler.UpdateContactInfo),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireClientRole,
-	))
-
-	mux.Handle("/api/client/profile/date-of-birth", router.applyMiddleware(
-		http.HandlerFunc(router.clientHandler.SetDateOfBirth),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireClientRole,
-	))
-
-	mux.Handle("/api/client/profile/delete", router.applyMiddleware(
-		http.HandlerFunc(router.clientHandler.DeleteProfile),
-		router.authMiddleware.RequireClientRole,
-	))
-
-	// Therapist-specific endpoints (therapist role required)
-	mux.Handle("/api/therapist/profile", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.CreateProfile),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	mux.Handle("/api/therapist/profile/get", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.GetProfile),
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	mux.Handle("/api/therapist/profile/personal-info", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.UpdatePersonalInfo),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	mux.Handle("/api/therapist/profile/contact-info", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.UpdateContactInfo),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	mux.Handle("/api/therapist/profile/bio", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.UpdateBio),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	mux.Handle("/api/therapist/profile/license", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.UpdateLicenseNumber),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	mux.Handle("/api/therapist/profile/specializations", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.UpdateSpecializations),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	mux.Handle("/api/therapist/profile/specialization/add", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.AddSpecialization),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	mux.Handle("/api/therapist/profile/specialization/remove", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.RemoveSpecialization),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	mux.Handle("/api/therapist/profile/accepting-clients", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.SetAcceptingClients),
-		httputil.JSONMiddleware,
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	mux.Handle("/api/therapist/profile/delete", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.DeleteProfile),
-		router.authMiddleware.RequireTherapistRole,
-	))
-
-	// Public therapist listing endpoints
-	mux.Handle("/api/therapists/accepting", router.applyMiddleware(
-		http.HandlerFunc(router.therapistHandler.GetAcceptingClients),
-		httputil.JSONMiddleware,
-	))
+	mux.HandleFunc("/api/register", router.userHandler.Register)
+	mux.HandleFunc("/api/register-with-role", router.userHandler.RegisterWithRole)
+	mux.HandleFunc("/api/login", router.userHandler.Login)
 
 	// Public therapy endpoints (for frontend to consume)
-	mux.Handle("/api/therapies", router.applyMiddleware(
-		http.HandlerFunc(router.therapyHandler.HandleTherapies),
-		httputil.JSONMiddleware,
-	))
+	mux.HandleFunc("/api/therapies", router.therapyHandler.HandleTherapies)
+	mux.HandleFunc("/api/therapies/", router.therapyHandler.HandleTherapies)
 
-	mux.Handle("/api/therapies/", router.applyMiddleware(
-		http.HandlerFunc(router.therapyHandler.HandleTherapies),
-		httputil.JSONMiddleware,
-	))
+	// Public article endpoints (for frontend to consume)
+	mux.HandleFunc("/api/articles", router.articleHandler.HandleArticles)
+	mux.HandleFunc("/api/articles/", router.articleHandler.HandleArticles)
 
-	// Apply global middleware
-	return router.applyMiddleware(
-		mux,
-		httputil.CORSMiddleware,
-		httputil.LoggingMiddleware,
-	)
+	// Wrap with CORS middleware
+	return router.corsMiddleware(mux)
+}
+
+func (router *Router) corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3004")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		// Handle preflight requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Call the next handler
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (router *Router) healthCheck(w http.ResponseWriter, r *http.Request) {
@@ -202,12 +86,4 @@ func (router *Router) healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status":"healthy","service":"thappy-api"}`))
-}
-
-// applyMiddleware applies middleware functions in reverse order (last middleware wraps first)
-func (router *Router) applyMiddleware(handler http.Handler, middlewares ...func(http.Handler) http.Handler) http.Handler {
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		handler = middlewares[i](handler)
-	}
-	return handler
 }

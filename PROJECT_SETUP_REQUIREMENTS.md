@@ -4,7 +4,7 @@
 
 This is a full-stack therapy platform with:
 - **Go backend** providing REST APIs (port 8080)
-- **React TypeScript frontend** for user interface (port 3001)
+- **React TypeScript frontend** for user interface (port 3004)
 - **PostgreSQL** for data persistence
 - **RabbitMQ** for message queuing
 
@@ -183,27 +183,36 @@ make clean
 ### Frontend Commands
 ```bash
 # Install dependencies
-cd frontend && npm install
+cd frontend && pnpm install
 
-# Start development server
-cd frontend && npm start
+# Start development server (port 3004)
+cd frontend && pnpm start
+
+# Restart development server (kills existing and starts fresh)
+cd frontend && pnpm run restart
+
+# Fresh restart with cache clearing
+cd frontend && pnpm run restart:fresh
+
+# Clear cache and reinstall
+cd frontend && pnpm run clean
 
 # Run TypeScript compiler
-cd frontend && npm run type-check
+cd frontend && pnpm run type-check
 
 # Run linting
-cd frontend && npm run lint
+cd frontend && pnpm run lint
 
 # Build for production
-cd frontend && npm run build
+cd frontend && pnpm run build
 
 # Run tests
-cd frontend && npm test
+cd frontend && pnpm test
 ```
 
 ## Local Development Ports
 - Backend API: http://localhost:8080
-- Frontend React App: http://localhost:3001
+- Frontend React App: http://localhost:3004
 - PostgreSQL: localhost:5432
 - RabbitMQ Management: http://localhost:15672
 - Prometheus Metrics: http://localhost:8080/metrics
@@ -234,11 +243,13 @@ cd frontend && npm test
 - **React Router**: `react-router-dom` - Client-side routing
 
 #### Current Dependencies (package.json)
+- **Package Manager**: pnpm for faster installs and disk efficiency
 - **Styling**: CSS Modules with CSS-in-JS patterns
 - **Fonts**: Google Fonts (Inter) loaded via HTML
 - **HTTP Client**: Fetch API (native browser support)
 - **State Management**: React Context + hooks pattern
 - **Build Tool**: Create React App (CRA) with TypeScript template
+- **Development**: Enhanced cache clearing and restart scripts
 
 #### Design System
 - **CSS Variables**: Centralized design tokens in `variables.css`

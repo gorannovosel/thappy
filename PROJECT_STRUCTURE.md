@@ -9,20 +9,47 @@ thappy/
 │
 ├── internal/                       # Private Go backend code
 │   ├── domain/                     # Core business logic & entities
-│   │   ├── entity.go              # Domain entities
+│   │   ├── therapy/               # Therapy domain
+│   │   │   ├── entity.go          # Therapy entity with validation
+│   │   │   ├── repository.go      # Therapy repository interface
+│   │   │   └── service.go         # Therapy service interface
+│   │   ├── article/               # Article domain
+│   │   │   ├── entity.go          # Article entity with validation
+│   │   │   ├── repository.go      # Article repository interface
+│   │   │   └── service.go         # Article service interface
+│   │   ├── entity.go              # Common domain entities
 │   │   ├── repository.go          # Repository interfaces
 │   │   └── service.go             # Service interfaces
 │   │
 │   ├── handler/                    # HTTP handlers (presentation layer)
+│   │   ├── therapy/               # Therapy-specific handlers
+│   │   │   ├── handler.go         # Therapy HTTP handlers
+│   │   │   ├── dto.go             # Therapy DTOs
+│   │   │   └── errors.go          # Therapy-specific errors
+│   │   ├── article/               # Article-specific handlers
+│   │   │   ├── dto.go             # Article DTOs
+│   │   │   └── errors.go          # Article-specific errors
+│   │   ├── therapy_handler.go     # Main therapy handler
+│   │   ├── article_handler.go     # Main article handler
 │   │   ├── health.go              # Health check endpoints
 │   │   ├── middleware.go          # HTTP middleware
-│   │   └── routes.go              # Route definitions
+│   │   ├── routes.go              # Route definitions with CORS
+│   │   ├── dto.go                 # Common DTOs
+│   │   └── errors.go              # Common error handling
 │   │
 │   ├── service/                    # Business logic implementation
-│   │   └── [feature]_service.go   # Service implementations
+│   │   ├── therapy/               # Therapy service implementation
+│   │   │   └── therapy.go         # Therapy business logic
+│   │   ├── article/               # Article service implementation
+│   │   │   └── article.go         # Article business logic
+│   │   └── [feature]_service.go   # Other service implementations
 │   │
 │   ├── repository/                 # Data access layer
 │   │   └── postgres/              # PostgreSQL implementations
+│   │       ├── therapy/           # Therapy repository
+│   │       │   └── therapy_repo.go # Therapy PostgreSQL implementation
+│   │       ├── article/           # Article repository
+│   │       │   └── article_repo.go # Article PostgreSQL implementation
 │   │       └── [entity]_repo.go
 │   │
 │   └── infrastructure/            # External services & config
@@ -39,7 +66,13 @@ thappy/
 │
 ├── migrations/                    # Database migrations
 │   ├── 000001_init_schema.up.sql
-│   └── 000001_init_schema.down.sql
+│   ├── 000001_init_schema.down.sql
+│   ├── 000002_create_users_table.up.sql
+│   ├── 000002_create_users_table.down.sql
+│   ├── 000003_create_therapies_table.up.sql
+│   ├── 000003_create_therapies_table.down.sql
+│   ├── 000004_create_articles_table.up.sql
+│   └── 000004_create_articles_table.down.sql
 │
 ├── test/                          # Go backend tests
 │   ├── integration/              # Integration tests
@@ -82,7 +115,9 @@ thappy/
 │   │   │   ├── public/              # Public content pages
 │   │   │   │   ├── TherapiesPage.tsx     # Therapy services listing
 │   │   │   │   ├── TherapyDetailPage.tsx # Individual therapy details
-│   │   │   │   ├── TopicsPage.tsx        # Educational articles
+│   │   │   │   ├── ArticlesPage.tsx      # Educational articles listing
+│   │   │   │   ├── ArticleDetailPage.tsx # Individual article details
+│   │   │   │   ├── TopicsPage.tsx        # Educational topics (legacy)
 │   │   │   │   ├── HelpPage.tsx          # Contact & support (Croatian)
 │   │   │   │   └── TherapistsPage.tsx    # Therapist search/listing
 │   │   │   │
@@ -104,7 +139,12 @@ thappy/
 │   │   ├── services/          # API service layer
 │   │   │   ├── api.ts              # Base API configuration
 │   │   │   ├── auth.ts             # Authentication API calls
+│   │   │   ├── therapy.ts          # Therapy API service
+│   │   │   ├── article.ts          # Article API service
 │   │   │   └── therapists.ts       # Therapist-related API calls
+│   │   │
+│   │   ├── types/             # TypeScript type definitions
+│   │   │   └── api.ts              # API response/request types
 │   │   │
 │   │   ├── styles/            # CSS styling
 │   │   │   ├── global-base.css     # Base HTML element styles
@@ -120,9 +160,11 @@ thappy/
 │   │   │
 │   │   └── App.tsx           # Root React component with routing
 │   │
-│   ├── package.json          # Frontend dependencies and scripts
-│   ├── package-lock.json     # Dependency lock file
+│   ├── package.json          # Frontend dependencies and scripts (pnpm)
+│   ├── pnpm-lock.yaml        # pnpm dependency lock file
 │   ├── tsconfig.json         # TypeScript configuration
+│   ├── debug-api.js          # Debugging utility for API calls
+│   ├── screenshot.js         # Screenshot utility for testing
 │   └── .env.local           # Frontend environment variables
 │
 ├── .github/

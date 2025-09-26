@@ -5,20 +5,22 @@ import (
 	"fmt"
 	"time"
 
+	articleDomain "github.com/goran/thappy/internal/domain/article"
 	clientDomain "github.com/goran/thappy/internal/domain/client"
 	therapistDomain "github.com/goran/thappy/internal/domain/therapist"
 	therapyDomain "github.com/goran/thappy/internal/domain/therapy"
 	"github.com/goran/thappy/internal/domain/user"
 	"github.com/goran/thappy/internal/handler"
-	httputil "github.com/goran/thappy/internal/handler/http"
 	userHandler "github.com/goran/thappy/internal/handler/user"
 	"github.com/goran/thappy/internal/infrastructure/config"
 	"github.com/goran/thappy/internal/infrastructure/database"
 	"github.com/goran/thappy/internal/infrastructure/messaging"
+	articleRepository "github.com/goran/thappy/internal/repository/article/postgres"
 	clientRepository "github.com/goran/thappy/internal/repository/client/postgres"
 	therapistRepository "github.com/goran/thappy/internal/repository/therapist/postgres"
 	therapyRepository "github.com/goran/thappy/internal/repository/therapy/postgres"
 	userRepository "github.com/goran/thappy/internal/repository/user/postgres"
+	articleService "github.com/goran/thappy/internal/service/article"
 	authService "github.com/goran/thappy/internal/service/auth"
 	clientService "github.com/goran/thappy/internal/service/client"
 	therapistService "github.com/goran/thappy/internal/service/therapist"
@@ -41,21 +43,18 @@ type Container struct {
 	ClientService    clientDomain.ClientService
 	TherapistService therapistDomain.TherapistService
 	TherapyService   therapyDomain.Service
+	ArticleService   articleDomain.Service
 
 	// Repositories
 	UserRepository      user.UserRepository
 	ClientRepository    clientDomain.ClientRepository
 	TherapistRepository therapistDomain.TherapistRepository
 	TherapyRepository   therapyDomain.Repository
+	ArticleRepository   articleDomain.Repository
 
 	// Handlers
-	UserHandler    *userHandler.Handler
-	Router         *handler.Router
-	AuthMiddleware *httputil.AuthMiddleware
-
-	// HTTP utilities
-	ResponseWriter *httputil.ResponseWriter
-	ErrorHandler   *httputil.ErrorHandler
+	UserHandler *userHandler.Handler
+	Router      *handler.Router
 }
 
 // NewContainer creates and initializes a new dependency injection container
@@ -129,6 +128,9 @@ func (c *Container) initRepositories() error {
 	// Therapy repository
 	c.TherapyRepository = therapyRepository.NewTherapyRepository(c.DB)
 
+	// Article repository
+	c.ArticleRepository = articleRepository.NewArticleRepository(c.DB)
+
 	return nil
 }
 
@@ -163,21 +165,16 @@ func (c *Container) initServices() error {
 		c.TherapyRepository,
 	)
 
+	// Article service
+	c.ArticleService = articleService.NewArticleService(
+		c.ArticleRepository,
+	)
+
 	return nil
 }
 
 // initHandlers initializes HTTP handlers and utilities
 func (c *Container) initHandlers() error {
-	// HTTP utilities
-	c.ResponseWriter = httputil.NewResponseWriter()
-	c.ErrorHandler = httputil.NewErrorHandler()
-
-	// Auth middleware
-	c.AuthMiddleware = httputil.NewAuthMiddleware(
-		c.TokenService,
-		c.UserService,
-	)
-
 	// User handler
 	c.UserHandler = userHandler.NewHandler(c.UserService)
 
@@ -187,6 +184,7 @@ func (c *Container) initHandlers() error {
 		c.ClientService,
 		c.TherapistService,
 		c.TherapyService,
+		c.ArticleService,
 		c.TokenService,
 	)
 
