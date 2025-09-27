@@ -29,8 +29,14 @@ make test
 ./test/curl/run-all-tests.sh
 ```
 
-**Backend API:** `http://localhost:8080`
-**Frontend App:** `http://localhost:3004`
+**Development:**
+- Backend API: `http://localhost:8080`
+- Frontend App: `http://localhost:3004`
+
+**Production:**
+- Server: `http://164.92.134.4` (Digital Ocean)
+- Backend API: `http://164.92.134.4:8081`
+- Deployed via GitHub Actions on every push to main
 
 ## 📋 Features
 
@@ -57,6 +63,7 @@ make test
 - ✅ **Health Checks** - API and database health monitoring
 - ✅ **Docker Support** - Complete containerized development environment
 - ✅ **Comprehensive Testing** - Unit tests, integration tests, and API test suite
+- ✅ **CI/CD Pipeline** - Automated deployment to Digital Ocean with GitHub Actions
 
 ## 🏗️ Architecture
 
@@ -94,6 +101,7 @@ make test
 ### 🚀 Deployment
 - [**Docker Guide**](docs/deployment/docker.md) - Container setup and configuration
 - [**Environment Configuration**](docs/deployment/configuration.md) - Settings and secrets
+- [**CI/CD Pipeline**](CLI_COMMANDS.md) - Digital Ocean deployment automation
 - [**Production Deployment**](docs/deployment/production.md) - Production best practices
 
 ### 🏛️ Architecture
@@ -136,6 +144,16 @@ make health           # Check API health
 ./test/curl/04-error-scenarios.sh         # Error handling tests
 ```
 
+### CI/CD Commands
+```bash
+make deploy           # Trigger production deployment
+make deploy-status    # Check deployment status
+make deploy-rollback  # Rollback to previous version
+make gh-deploy        # Manual GitHub Actions deploy trigger
+make do-status        # Check Digital Ocean droplet status
+make do-ssh           # SSH into production server
+```
+
 ## 📊 Current Status
 
 | Component | Status | Coverage | Notes |
@@ -147,6 +165,15 @@ make health           # Check API health
 | Database | ✅ Complete | N/A | Migrations working |
 | Docker | ✅ Complete | N/A | All services running |
 | Testing | ✅ Complete | N/A | 5 test scripts |
+| CI/CD Pipeline | 🟡 95% Complete | N/A | Deployment automation ready |
+
+### 🚀 CI/CD Pipeline Status
+- ✅ **GitHub Actions Workflow** - Automated testing and deployment
+- ✅ **Digital Ocean Infrastructure** - Production droplet configured
+- ✅ **Docker Build Pipeline** - Frontend and backend builds working
+- ✅ **Automated Testing** - Backend tests run on every push
+- ✅ **SSH Setup** - Secure deployment access configured
+- 🟡 **Production Deployment** - Final SSH connection step being resolved
 
 ## 🎯 API Endpoints
 
