@@ -20,69 +20,69 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Run tests before deployment - TEMPORARILY DISABLED FOR FASTER CI/CD
-  # test:
-  #   name: Run Tests
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+  # Run tests before deployment
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v4
-  #       with:
-  #         go-version: '1.21'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
 
-  #     - name: Set up Node.js
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: '18'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v2
-  #       with:
-  #         version: 8
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
-  #     - name: Cache Go modules
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ~/go/pkg/mod
-  #         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-go-
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
-  #     - name: Cache pnpm store
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ~/.pnpm-store
-  #         key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-pnpm-
+      - name: Cache pnpm store
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
-  #     - name: Install backend dependencies
-  #       run: go mod download
+      - name: Install backend dependencies
+        run: go mod download
 
-  #     - name: Install frontend dependencies
-  #       working-directory: ./frontend
-  #       run: pnpm install
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: pnpm install
 
-  #     - name: Run backend tests
-  #       run: go test -v -race ./...
+      - name: Run backend tests
+        run: go test -v -race ./...
 
-  #     # Temporarily disabled due to test configuration issues
-  #     # - name: Run frontend tests
-  #     #   working-directory: ./frontend
-  #     #   run: pnpm test:ci
+      # Temporarily disabled due to test configuration issues
+      # - name: Run frontend tests
+      #   working-directory: ./frontend
+      #   run: pnpm test:ci
 
-  #     - name: Build test images
-  #       run: |
-  #         docker build -t thappy-backend:test .
-  #         docker build -t thappy-frontend:test ./frontend
+      - name: Build test images
+        run: |
+          docker build -t thappy-backend:test .
+          docker build -t thappy-frontend:test ./frontend
 
   # Deploy to Digital Ocean
   deploy:
     name: Deploy to Production
-    # needs: test  # DISABLED: Remove test dependency for faster deployments
+    needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     environment:
@@ -282,7 +282,7 @@ jobs:
   # Notification job
   notify:
     name: Send Notifications
-    needs: [deploy]  # UPDATED: Removed test dependency
+    needs: [test, deploy]
     runs-on: ubuntu-latest
     if: always()
 
