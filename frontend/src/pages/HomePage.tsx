@@ -17,7 +17,7 @@ const HomePage: React.FC = () => {
       >
         <div className={styles.container}>
           <div
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-20"
+            className="responsive-hero-grid"
             style={{
               alignItems: 'center',
               maxWidth: '1200px',
@@ -27,10 +27,9 @@ const HomePage: React.FC = () => {
             {/* Left Content */}
             <div>
               <h1
-                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
+                className="responsive-hero-title"
                 style={{
                   fontWeight: '400',
-                  lineHeight: '1.2',
                   marginBottom: '24px',
                   color: '#1a1a1a',
                   fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
@@ -112,7 +111,7 @@ const HomePage: React.FC = () => {
       >
         <div className={styles.container}>
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-12"
+            className="responsive-cards-grid"
             style={{
               maxWidth: '1200px',
               margin: '0 auto',
@@ -141,7 +140,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
               <h3
-                className="text-xl sm:text-2xl"
+                className="responsive-section-title"
                 style={{
                   fontWeight: '400',
                   marginBottom: '12px',
@@ -223,7 +222,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
               <h3
-                className="text-xl sm:text-2xl"
+                className="responsive-section-title"
                 style={{
                   fontWeight: '400',
                   marginBottom: '12px',
@@ -305,7 +304,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
               <h3
-                className="text-xl sm:text-2xl"
+                className="responsive-section-title"
                 style={{
                   fontWeight: '400',
                   marginBottom: '12px',

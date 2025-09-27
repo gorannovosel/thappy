@@ -77,7 +77,7 @@ const Header: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden"
+            className="mobile-nav"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             style={{
               background: 'none',

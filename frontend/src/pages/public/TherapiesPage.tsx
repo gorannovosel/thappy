@@ -5,6 +5,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Footer from '../../components/Footer';
 import { therapyApi } from '../../services/therapy';
 import styles from '../../styles/global.module.css';
+import '../../styles/responsive.css';
 import { TherapyResponse } from '../../types/api';
 
 const TherapiesPage: React.FC = () => {
@@ -57,14 +58,8 @@ const TherapiesPage: React.FC = () => {
       <div className={styles.container}>
         {/* Header Section */}
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-            gap: 'var(--spacing-2xl)',
-            alignItems: 'center',
-            marginBottom: 'var(--spacing-2xl)',
-            padding: 'var(--spacing-xl) 0',
-          }}
+          className="responsive-hero-grid"
+          style={{ alignItems: 'center', marginBottom: '2rem', padding: '1.5rem 0' }}
         >
           {/* Left Content */}
           <div>
@@ -91,7 +86,8 @@ const TherapiesPage: React.FC = () => {
           >
             <div
               style={{
-                width: '250px',
+                width: '100%',
+                maxWidth: '250px',
                 height: '250px',
                 margin: '0 auto',
                 display: 'flex',
@@ -114,12 +110,8 @@ const TherapiesPage: React.FC = () => {
 
         {/* Therapy Cards */}
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '16px',
-            marginBottom: 'var(--spacing-2xl)',
-          }}
+          className="responsive-cards-grid"
+          style={{ marginBottom: '2rem' }}
         >
           {therapies.map((therapy, index) => {
             // Exact colors from Brightline design

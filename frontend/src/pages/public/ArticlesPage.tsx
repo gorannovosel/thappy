@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../../styles/global.module.css';
+import '../../styles/responsive.css';
 import Footer from '../../components/Footer';
 import {
   articleApi,
@@ -259,12 +260,7 @@ const ArticlesPage: React.FC = () => {
 
           {/* Category Filters */}
           <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 'var(--spacing-sm)',
-              justifyContent: 'center',
-            }}
+            className="flex flex-wrap gap-2 justify-center"
           >
             {categories.map(category => (
               <button
@@ -318,11 +314,7 @@ const ArticlesPage: React.FC = () => {
                 Featured Articles
               </h2>
               <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-                  gap: 'var(--spacing-xl)',
-                }}
+                className="responsive-articles-grid"
               >
                 {featuredArticles.map(article => (
                   <article
@@ -519,11 +511,7 @@ const ArticlesPage: React.FC = () => {
             </div>
           ) : (
             <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                gap: 'var(--spacing-xl)',
-              }}
+              className="responsive-articles-grid"
             >
               {(selectedCategory === 'All Articles' && !searchTerm
                 ? regularArticles
@@ -701,14 +689,7 @@ const ArticlesPage: React.FC = () => {
             Get the latest articles and resources delivered to your inbox.
           </p>
           <div
-            style={{
-              display: 'flex',
-              gap: 'var(--spacing-md)',
-              maxWidth: '400px',
-              margin: '0 auto',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-            }}
+            className="flex flex-col sm:flex-row gap-3 w-full max-w-md mx-auto"
           >
             <input
               type="email"
