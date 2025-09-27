@@ -66,7 +66,7 @@ const Header: React.FC = () => {
               fontFamily: 'var(--font-family-display)',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem'
+              gap: '0.5rem',
             }}
           >
             thappy
@@ -75,7 +75,9 @@ const Header: React.FC = () => {
 
           <nav>
             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}
+              >
                 <Link
                   to="/therapies"
                   style={{
@@ -83,7 +85,7 @@ const Header: React.FC = () => {
                     color: '#374151',
                     fontSize: 'var(--font-size-base)',
                     fontWeight: '500',
-                    padding: '0.5rem 0'
+                    padding: '0.5rem 0',
                   }}
                 >
                   Therapies
@@ -96,7 +98,7 @@ const Header: React.FC = () => {
                     color: '#374151',
                     fontSize: 'var(--font-size-base)',
                     fontWeight: '500',
-                    padding: '0.5rem 0'
+                    padding: '0.5rem 0',
                   }}
                 >
                   Articles
@@ -109,7 +111,7 @@ const Header: React.FC = () => {
                     color: '#374151',
                     fontSize: 'var(--font-size-base)',
                     fontWeight: '500',
-                    padding: '0.5rem 0'
+                    padding: '0.5rem 0',
                   }}
                 >
                   Ask for help
@@ -122,7 +124,7 @@ const Header: React.FC = () => {
                     color: '#374151',
                     fontSize: 'var(--font-size-base)',
                     fontWeight: '500',
-                    padding: '0.5rem 0'
+                    padding: '0.5rem 0',
                   }}
                 >
                   Search
@@ -143,10 +145,14 @@ const Header: React.FC = () => {
                   transition: 'all 0.2s ease',
                   border: 'none',
                   cursor: 'pointer',
-                  marginRight: '1rem'
+                  marginRight: '1rem',
                 }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d97706'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f59e0b'}
+                onMouseOver={e =>
+                  (e.currentTarget.style.backgroundColor = '#d97706')
+                }
+                onMouseOut={e =>
+                  (e.currentTarget.style.backgroundColor = '#f59e0b')
+                }
               >
                 Call +385 1 234 5678
               </Link>
@@ -242,7 +248,7 @@ const Header: React.FC = () => {
                       fontSize: 'var(--font-size-base)',
                       fontWeight: '600',
                       padding: '10px 20px',
-                      marginRight: '1rem'
+                      marginRight: '1rem',
                     }}
                   >
                     Sign In
@@ -259,10 +265,14 @@ const Header: React.FC = () => {
                       fontWeight: '600',
                       transition: 'all 0.2s ease',
                       border: 'none',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d97706'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f59e0b'}
+                    onMouseOver={e =>
+                      (e.currentTarget.style.backgroundColor = '#d97706')
+                    }
+                    onMouseOut={e =>
+                      (e.currentTarget.style.backgroundColor = '#f59e0b')
+                    }
                   >
                     Get Started
                   </Link>

@@ -1,0 +1,295 @@
+name: Deploy to Digital Ocean
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger via gh CLI
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  DO_CONTEXT: thappy
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Run tests before deployment
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Cache pnpm store
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install backend dependencies
+        run: go mod download
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: pnpm install
+
+      - name: Run backend tests
+        run: go test -v -race ./...
+
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: pnpm test:ci
+
+      - name: Build test images
+        run: |
+          docker build -t thappy-backend:test .
+          docker build -t thappy-frontend:test ./frontend
+
+  # Deploy to Digital Ocean
+  deploy:
+    name: Deploy to Production
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://${{ secrets.DO_HOST_IP }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_ACCESS_TOKEN }}
+
+      - name: Save DigitalOcean kubeconfig
+        if: false  # Enable if using Kubernetes
+        run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 thappy-cluster
+
+      - name: Get droplet IP
+        id: droplet
+        run: |
+          DROPLET_IP=$(doctl compute droplet list --format PublicIPv4,Name --no-header --context ${{ env.DO_CONTEXT }} | grep thappy-prod | awk '{print $1}')
+          echo "ip=$DROPLET_IP" >> $GITHUB_OUTPUT
+          echo "Droplet IP: $DROPLET_IP"
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DO_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ steps.droplet.outputs.ip }} >> ~/.ssh/known_hosts
+
+      - name: Create deployment environment
+        run: |
+          ssh root@${{ steps.droplet.outputs.ip }} << 'ENDSSH'
+            # Ensure deployment directory exists
+            mkdir -p /opt/thappy
+            cd /opt/thappy
+
+            # Create .env file
+            cat > .env.production << EOF
+          DB_USER=thappy
+          DB_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}
+          DB_NAME=thappy
+          JWT_SECRET=${{ secrets.JWT_SECRET_PROD }}
+          JWT_TOKEN_TTL=24h
+          APP_VERSION=${{ github.sha }}
+          CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
+          EOF
+          ENDSSH
+
+      - name: Deploy application
+        run: |
+          ssh root@${{ steps.droplet.outputs.ip }} << 'ENDSSH'
+            cd /opt/thappy
+
+            # Pull latest code
+            if [ ! -d .git ]; then
+              git clone https://github.com/${{ github.repository }} .
+            fi
+            git fetch origin
+            git reset --hard origin/main
+
+            # Stop current deployment
+            docker-compose -f docker-compose.production.yml --env-file .env.production down || true
+
+            # Build and start new deployment
+            docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build
+
+            # Run migrations
+            docker-compose -f docker-compose.production.yml --env-file .env.production run --rm migrate
+
+            # Clean up old images
+            docker system prune -af --volumes || true
+          ENDSSH
+
+      - name: Health check
+        run: |
+          echo "Waiting for services to be healthy..."
+          sleep 30
+
+          # Check backend health
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://${{ steps.droplet.outputs.ip }}:8081/health)
+          if [ "$response" != "200" ]; then
+            echo "Backend health check failed with status: $response"
+            exit 1
+          fi
+          echo "✅ Backend is healthy"
+
+          # Check frontend health
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://${{ steps.droplet.outputs.ip }})
+          if [ "$response" != "200" ] && [ "$response" != "304" ]; then
+            echo "Frontend health check failed with status: $response"
+            exit 1
+          fi
+          echo "✅ Frontend is healthy"
+
+      - name: Create deployment record
+        if: success()
+        run: |
+          gh api repos/${{ github.repository }}/deployments \
+            -f ref=${{ github.sha }} \
+            -f environment=${{ github.event.inputs.environment || 'production' }} \
+            -f description="Deployed via GitHub Actions" \
+            -f auto_merge=false \
+            -f required_contexts='[]' \
+            -f production_environment=${{ github.ref == 'refs/heads/main' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update deployment status
+        if: always()
+        run: |
+          DEPLOYMENT_ID=$(gh api repos/${{ github.repository }}/deployments --jq '.[0].id')
+
+          if [ "${{ job.status }}" == "success" ]; then
+            STATE="success"
+            DESC="Deployment successful"
+          else
+            STATE="failure"
+            DESC="Deployment failed"
+          fi
+
+          gh api repos/${{ github.repository }}/deployments/${DEPLOYMENT_ID}/statuses \
+            -f state=$STATE \
+            -f description="$DESC" \
+            -f environment_url="https://${{ steps.droplet.outputs.ip }}" \
+            -f auto_inactive=true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Rollback job (manual trigger only)
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
+    environment:
+      name: production-rollback
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2  # Need previous commit
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_ACCESS_TOKEN }}
+
+      - name: Get droplet IP
+        id: droplet
+        run: |
+          DROPLET_IP=$(doctl compute droplet list --format PublicIPv4,Name --no-header --context ${{ env.DO_CONTEXT }} | grep thappy-prod | awk '{print $1}')
+          echo "ip=$DROPLET_IP" >> $GITHUB_OUTPUT
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DO_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ steps.droplet.outputs.ip }} >> ~/.ssh/known_hosts
+
+      - name: Perform rollback
+        run: |
+          PREVIOUS_SHA=$(git rev-parse HEAD~1)
+          echo "Rolling back to commit: $PREVIOUS_SHA"
+
+          ssh root@${{ steps.droplet.outputs.ip }} << ENDSSH
+            cd /opt/thappy
+
+            # Checkout previous commit
+            git fetch origin
+            git reset --hard $PREVIOUS_SHA
+
+            # Restart services with previous version
+            docker-compose -f docker-compose.production.yml --env-file .env.production down
+            docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build
+
+            echo "✅ Rollback completed to $PREVIOUS_SHA"
+          ENDSSH
+
+  # Notification job
+  notify:
+    name: Send Notifications
+    needs: [test, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Send deployment notification
+        if: needs.deploy.result == 'success'
+        run: |
+          echo "🚀 Deployment successful!"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo "Message: ${{ github.event.head_commit.message }}"
+
+          # Add Slack/Discord webhook notification here if needed
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"Deployment successful for Thappy!"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Send failure notification
+        if: needs.deploy.result == 'failure'
+        run: |
+          echo "❌ Deployment failed!"
+          echo "Please check the logs for details."
+
+          # Add Slack/Discord webhook notification here if needed

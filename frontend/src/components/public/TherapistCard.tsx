@@ -89,9 +89,7 @@ const TherapistCard: React.FC<TherapistCardProps> = ({
           onClick={handleContact}
           disabled={!therapist.accepting_clients}
         >
-          {therapist.accepting_clients
-            ? 'Contact'
-            : 'Not Accepting'}
+          {therapist.accepting_clients ? 'Contact' : 'Not Accepting'}
         </button>
       </div>
 

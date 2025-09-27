@@ -28,7 +28,9 @@ export const therapistDiscoveryApi = {
     return response.json();
   },
 
-  async searchTherapists(params: TherapistSearchParams = {}): Promise<TherapistsResponse> {
+  async searchTherapists(
+    params: TherapistSearchParams = {}
+  ): Promise<TherapistsResponse> {
     const searchParams = new URLSearchParams();
 
     if (params.search) {
@@ -40,7 +42,10 @@ export const therapistDiscoveryApi = {
     }
 
     if (params.accepting_clients !== undefined) {
-      searchParams.append('accepting_clients', params.accepting_clients.toString());
+      searchParams.append(
+        'accepting_clients',
+        params.accepting_clients.toString()
+      );
     }
 
     if (params.limit) {
@@ -94,12 +99,15 @@ export const therapistDiscoveryApi = {
   },
 
   async getTherapistByLicenseNumber(licenseNumber: string): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/api/therapists/profile/${licenseNumber}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/therapists/profile/${licenseNumber}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     if (!response.ok) {
       const error = await response

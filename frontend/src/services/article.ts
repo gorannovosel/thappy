@@ -2,7 +2,10 @@ import { ArticleListResponse, ArticleDetailResponse } from '../types/api';
 import { API_BASE_URL } from '../utils/constants';
 
 export const articleApi = {
-  async getArticles(publishedOnly = true, category?: string): Promise<ArticleListResponse> {
+  async getArticles(
+    publishedOnly = true,
+    category?: string
+  ): Promise<ArticleListResponse> {
     const url = new URL(`${API_BASE_URL}/api/articles`);
     if (publishedOnly) {
       url.searchParams.set('published', 'true');
@@ -48,7 +51,10 @@ export const articleApi = {
     return response.json();
   },
 
-  async getArticlesByCategory(category: string, publishedOnly = true): Promise<ArticleListResponse> {
+  async getArticlesByCategory(
+    category: string,
+    publishedOnly = true
+  ): Promise<ArticleListResponse> {
     return this.getArticles(publishedOnly, category);
   },
 };
@@ -67,7 +73,8 @@ export const ARTICLE_CATEGORIES = {
   WELLNESS: 'wellness',
 } as const;
 
-export type ArticleCategory = typeof ARTICLE_CATEGORIES[keyof typeof ARTICLE_CATEGORIES];
+export type ArticleCategory =
+  (typeof ARTICLE_CATEGORIES)[keyof typeof ARTICLE_CATEGORIES];
 
 // Helper function to format category for display
 export const formatCategoryName = (category: string): string => {

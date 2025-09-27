@@ -45,7 +45,9 @@ const TherapistDetailPage: React.FC = () => {
       <div className={styles.container}>
         <div className={styles.error}>
           <h2>Therapist Not Found</h2>
-          <p>{error || 'The therapist you are looking for could not be found.'}</p>
+          <p>
+            {error || 'The therapist you are looking for could not be found.'}
+          </p>
           <Link to="/therapists" className={styles.backLink}>
             Back to therapists
           </Link>
@@ -59,9 +61,13 @@ const TherapistDetailPage: React.FC = () => {
       <div className={styles.content}>
         {/* Breadcrumb Navigation */}
         <div className={styles.breadcrumb}>
-          <Link to="/" className={styles.breadcrumbLink}>Home</Link>
+          <Link to="/" className={styles.breadcrumbLink}>
+            Home
+          </Link>
           <span className={styles.breadcrumbSeparator}>/</span>
-          <Link to="/therapists" className={styles.breadcrumbLink}>Therapists</Link>
+          <Link to="/therapists" className={styles.breadcrumbLink}>
+            Therapists
+          </Link>
           <span className={styles.breadcrumbSeparator}>/</span>
           <span className={styles.breadcrumbCurrent}>
             Dr. {therapist.first_name} {therapist.last_name}
@@ -71,8 +77,18 @@ const TherapistDetailPage: React.FC = () => {
         {/* Back Navigation */}
         <div className={styles.backNav}>
           <Link to="/therapists" className={styles.backButton}>
-            <svg className={styles.backIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className={styles.backIcon}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Back to therapists
           </Link>
@@ -95,13 +111,20 @@ const TherapistDetailPage: React.FC = () => {
                     Dr. {therapist.first_name} {therapist.last_name}
                   </h1>
                   {therapist.accepting_clients && (
-                    <span className={styles.acceptingBadge}>Accepting clients</span>
+                    <span className={styles.acceptingBadge}>
+                      Accepting clients
+                    </span>
                   )}
                 </div>
 
                 <div className={styles.profileDetails}>
                   <div className={styles.detailItem}>
-                    <svg className={styles.detailIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className={styles.detailIcon}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -112,7 +135,12 @@ const TherapistDetailPage: React.FC = () => {
                     License: {therapist.license_number}
                   </div>
                   <div className={styles.detailItem}>
-                    <svg className={styles.detailIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className={styles.detailIcon}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -124,7 +152,12 @@ const TherapistDetailPage: React.FC = () => {
                   </div>
                   {therapist.phone && (
                     <div className={styles.detailItem}>
-                      <svg className={styles.detailIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className={styles.detailIcon}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -164,18 +197,19 @@ const TherapistDetailPage: React.FC = () => {
             )}
 
             {/* Specializations */}
-            {therapist.specializations && therapist.specializations.length > 0 && (
-              <div className={styles.infoCard}>
-                <h2 className={styles.sectionTitle}>Areas of Expertise</h2>
-                <div className={styles.specializationsList}>
-                  {therapist.specializations.map((specialization, index) => (
-                    <span key={index} className={styles.specializationBadge}>
-                      {specialization}
-                    </span>
-                  ))}
+            {therapist.specializations &&
+              therapist.specializations.length > 0 && (
+                <div className={styles.infoCard}>
+                  <h2 className={styles.sectionTitle}>Areas of Expertise</h2>
+                  <div className={styles.specializationsList}>
+                    {therapist.specializations.map((specialization, index) => (
+                      <span key={index} className={styles.specializationBadge}>
+                        {specialization}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Contact Information */}
             <div className={styles.infoCard}>
@@ -205,9 +239,12 @@ const TherapistDetailPage: React.FC = () => {
         {/* Why Choose Section */}
         <div className={styles.whyChooseSection}>
           <div className={styles.whyChooseContent}>
-            <h2 className={styles.whyChooseTitle}>Why families choose our therapists</h2>
+            <h2 className={styles.whyChooseTitle}>
+              Why families choose our therapists
+            </h2>
             <p className={styles.whyChooseSubtitle}>
-              Our therapists are carefully selected and trained to provide the highest quality care.
+              Our therapists are carefully selected and trained to provide the
+              highest quality care.
             </p>
             <div className={styles.whyChooseGrid}>
               <div className={styles.whyChooseItem}>
@@ -223,7 +260,8 @@ const TherapistDetailPage: React.FC = () => {
                 </div>
                 <h3>Licensed & Experienced</h3>
                 <p>
-                  All our therapists are licensed professionals with specialized training in mental health.
+                  All our therapists are licensed professionals with specialized
+                  training in mental health.
                 </p>
               </div>
               <div className={styles.whyChooseItem}>
@@ -239,18 +277,25 @@ const TherapistDetailPage: React.FC = () => {
                 </div>
                 <h3>Warm & Caring</h3>
                 <p>
-                  We create a safe, supportive environment where you feel comfortable opening up.
+                  We create a safe, supportive environment where you feel
+                  comfortable opening up.
                 </p>
               </div>
               <div className={styles.whyChooseItem}>
                 <div className={styles.whyChooseIcon}>
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
                   </svg>
                 </div>
                 <h3>Evidence-Based</h3>
                 <p>
-                  Our treatments are backed by research and proven to be effective.
+                  Our treatments are backed by research and proven to be
+                  effective.
                 </p>
               </div>
             </div>

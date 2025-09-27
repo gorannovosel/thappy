@@ -16,7 +16,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-family-primary);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
@@ -37,6 +42,8 @@ a {
 }
 
 /* Make sure system fonts render consistently */
-input, textarea, select {
+input,
+textarea,
+select {
   font-family: var(--font-family-primary);
 }

@@ -39,7 +39,10 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/therapists" element={<TherapistsPage />} />
-                <Route path="/therapists/:id" element={<TherapistDetailPage />} />
+                <Route
+                  path="/therapists/:id"
+                  element={<TherapistDetailPage />}
+                />
                 <Route path="/therapies" element={<TherapiesPage />} />
                 <Route
                   path="/therapies/:therapyId"
