@@ -1,20 +1,21 @@
 import { ArticleListResponse, ArticleDetailResponse } from '../types/api';
-import { API_BASE_URL } from '../utils/constants';
+import { API_BASE_URL, buildApiUrl } from '../utils/constants';
 
 export const articleApi = {
   async getArticles(
     publishedOnly = true,
     category?: string
   ): Promise<ArticleListResponse> {
-    const url = new URL(`${API_BASE_URL}/api/articles`);
+    const params = new URLSearchParams();
     if (publishedOnly) {
-      url.searchParams.set('published', 'true');
+      params.set('published', 'true');
     }
     if (category) {
-      url.searchParams.set('category', category);
+      params.set('category', category);
     }
 
-    const response = await fetch(url.toString(), {
+    const url = buildApiUrl('/api/articles', params);
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -33,7 +34,8 @@ export const articleApi = {
   },
 
   async getArticle(idOrSlug: string): Promise<ArticleDetailResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/articles/${idOrSlug}`, {
+    const url = buildApiUrl(`/api/articles/${idOrSlug}`);
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

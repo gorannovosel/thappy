@@ -1,6 +1,25 @@
 export const API_BASE_URL =
   process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8081');
 
+// Helper function to construct API URLs that handles both absolute and relative base URLs
+export const buildApiUrl = (endpoint: string, params?: URLSearchParams): string => {
+  if (API_BASE_URL) {
+    // Absolute URL case (development)
+    const url = new URL(`${API_BASE_URL}${endpoint}`);
+    if (params) {
+      params.forEach((value, key) => url.searchParams.set(key, value));
+    }
+    return url.toString();
+  } else {
+    // Relative URL case (production)
+    let url = endpoint;
+    if (params && params.toString()) {
+      url += `?${params.toString()}`;
+    }
+    return url;
+  }
+};
+
 export const API_ENDPOINTS = {
   // Health
   HEALTH: '/health',

@@ -1,5 +1,5 @@
 import { TherapyResponse } from '../types/api';
-import { API_BASE_URL } from '../utils/constants';
+import { API_BASE_URL, buildApiUrl } from '../utils/constants';
 
 export interface TherapiesResponse {
   therapies: TherapyResponse[];
@@ -11,12 +11,13 @@ export interface TherapyDetailResponse {
 
 export const therapyApi = {
   async getTherapies(activeOnly = true): Promise<TherapiesResponse> {
-    const url = new URL(`${API_BASE_URL}/api/therapies`);
+    const params = new URLSearchParams();
     if (activeOnly) {
-      url.searchParams.set('active', 'true');
+      params.set('active', 'true');
     }
 
-    const response = await fetch(url.toString(), {
+    const url = buildApiUrl('/api/therapies', params);
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -35,7 +36,8 @@ export const therapyApi = {
   },
 
   async getTherapy(id: string): Promise<TherapyDetailResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/therapies/${id}`, {
+    const url = buildApiUrl(`/api/therapies/${id}`);
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
