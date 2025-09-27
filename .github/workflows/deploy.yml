@@ -108,6 +108,13 @@ jobs:
           echo "ip=$DROPLET_IP" >> $GITHUB_OUTPUT
           echo "Droplet IP: $DROPLET_IP"
 
+          # Verify IP was found
+          if [ -z "$DROPLET_IP" ]; then
+            echo "ERROR: Could not find droplet IP"
+            doctl compute droplet list --context ${{ env.DO_CONTEXT }}
+            exit 1
+          fi
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -174,39 +181,10 @@ jobs:
           fi
           echo "✅ Frontend is healthy"
 
-      - name: Create deployment record
-        if: success()
-        run: |
-          gh api repos/${{ github.repository }}/deployments \
-            -f ref=${{ github.sha }} \
-            -f environment=${{ github.event.inputs.environment || 'production' }} \
-            -f description="Deployed via GitHub Actions" \
-            -f auto_merge=false \
-            -f required_contexts='[]' \
-            -f production_environment=${{ github.ref == 'refs/heads/main' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update deployment status
-        if: always()
-        run: |
-          DEPLOYMENT_ID=$(gh api repos/${{ github.repository }}/deployments --jq '.[0].id')
-
-          if [ "${{ job.status }}" == "success" ]; then
-            STATE="success"
-            DESC="Deployment successful"
-          else
-            STATE="failure"
-            DESC="Deployment failed"
-          fi
-
-          gh api repos/${{ github.repository }}/deployments/${DEPLOYMENT_ID}/statuses \
-            -f state=$STATE \
-            -f description="$DESC" \
-            -f environment_url="https://${{ steps.droplet.outputs.ip }}" \
-            -f auto_inactive=true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Deployment record creation disabled due to GitHub token permissions
+      # - name: Create deployment record
+      #   if: success()
+      #   run: echo "Deployment completed successfully"
 
   # Rollback job (manual trigger only)
   rollback:
