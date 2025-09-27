@@ -86,7 +86,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment:
       name: production
-      url: https://${{ secrets.DO_HOST_IP }}
 
     steps:
       - name: Checkout code
@@ -212,7 +211,7 @@ jobs:
   rollback:
     name: Rollback Deployment
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
+    if: github.event_name == 'workflow_dispatch'
     environment:
       name: production-rollback
 
