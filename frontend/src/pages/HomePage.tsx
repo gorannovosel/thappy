@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../styles/global.module.css';
+import '../styles/responsive.css';
 import Footer from '../components/Footer';
 
 const HomePage: React.FC = () => {
@@ -16,10 +17,8 @@ const HomePage: React.FC = () => {
       >
         <div className={styles.container}>
           <div
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-20"
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '80px',
               alignItems: 'center',
               maxWidth: '1200px',
               margin: '0 auto',
@@ -28,8 +27,8 @@ const HomePage: React.FC = () => {
             {/* Left Content */}
             <div>
               <h1
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
                 style={{
-                  fontSize: '48px',
                   fontWeight: '400',
                   lineHeight: '1.2',
                   marginBottom: '24px',
@@ -93,7 +92,8 @@ const HomePage: React.FC = () => {
                 src="/mainpage_drawing.png"
                 alt="Child illustration"
                 style={{
-                  width: '400px',
+                  width: '100%',
+                  maxWidth: '400px',
                   height: 'auto',
                   objectFit: 'contain',
                 }}
@@ -112,19 +112,18 @@ const HomePage: React.FC = () => {
       >
         <div className={styles.container}>
           <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-12"
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '60px',
               maxWidth: '1200px',
               margin: '0 auto',
             }}
           >
             {/* Find Therapies Section */}
-            <div style={{ textAlign: 'center' }}>
+            <div className="text-center">
               <div
                 style={{
-                  width: '200px',
+                  width: '100%',
+                  maxWidth: '200px',
                   height: '200px',
                   margin: '0 auto 24px auto',
                   borderRadius: '12px',
@@ -142,8 +141,8 @@ const HomePage: React.FC = () => {
                 />
               </div>
               <h3
+                className="text-xl sm:text-2xl"
                 style={{
-                  fontSize: '28px',
                   fontWeight: '400',
                   marginBottom: '12px',
                   color: '#1a1a1a',
@@ -202,10 +201,11 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Educational Articles Section */}
-            <div style={{ textAlign: 'center' }}>
+            <div className="text-center">
               <div
                 style={{
-                  width: '200px',
+                  width: '100%',
+                  maxWidth: '200px',
                   height: '200px',
                   margin: '0 auto 24px auto',
                   borderRadius: '12px',
@@ -223,8 +223,8 @@ const HomePage: React.FC = () => {
                 />
               </div>
               <h3
+                className="text-xl sm:text-2xl"
                 style={{
-                  fontSize: '28px',
                   fontWeight: '400',
                   marginBottom: '12px',
                   color: '#1a1a1a',
@@ -283,10 +283,11 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Need Guidance Section */}
-            <div style={{ textAlign: 'center' }}>
+            <div className="text-center">
               <div
                 style={{
-                  width: '200px',
+                  width: '100%',
+                  maxWidth: '200px',
                   height: '200px',
                   margin: '0 auto 24px auto',
                   borderRadius: '12px',
@@ -304,8 +305,8 @@ const HomePage: React.FC = () => {
                 />
               </div>
               <h3
+                className="text-xl sm:text-2xl"
                 style={{
-                  fontSize: '28px',
                   fontWeight: '400',
                   marginBottom: '12px',
                   color: '#1a1a1a',

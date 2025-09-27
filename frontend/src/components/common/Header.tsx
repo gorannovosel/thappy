@@ -4,11 +4,13 @@ import { useAuth } from '../../context/AuthContext';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
 import ConfirmDialog from './ConfirmDialog';
 import styles from '../../styles/global.module.css';
+import '../../styles/responsive.css';
 
 const Header: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Enable session timeout for authenticated users
   useSessionTimeout({
@@ -73,7 +75,24 @@ const Header: React.FC = () => {
             <span style={{ color: '#0ea5e9', fontSize: '1.2rem' }}>✨</span>
           </Link>
 
-          <nav>
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '1.5rem',
+              cursor: 'pointer',
+              padding: '0.5rem',
+              color: '#374151',
+            }}
+          >
+            {isMobileMenuOpen ? '✕' : '☰'}
+          </button>
+
+          {/* Desktop Navigation */}
+          <nav className="desktop-nav">
             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}
@@ -280,6 +299,187 @@ const Header: React.FC = () => {
               )}
             </div>
           </nav>
+
+          {/* Mobile Navigation */}
+          {isMobileMenuOpen && (
+            <div
+              className="mobile-nav"
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                backgroundColor: 'white',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                zIndex: 1000,
+                padding: '1rem',
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <Link
+                  to="/therapies"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{
+                    textDecoration: 'none',
+                    color: '#374151',
+                    fontSize: 'var(--font-size-base)',
+                    fontWeight: '500',
+                    padding: '0.75rem 0',
+                    borderBottom: '1px solid #e5e7eb',
+                  }}
+                >
+                  Therapies
+                </Link>
+
+                <Link
+                  to="/articles"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{
+                    textDecoration: 'none',
+                    color: '#374151',
+                    fontSize: 'var(--font-size-base)',
+                    fontWeight: '500',
+                    padding: '0.75rem 0',
+                    borderBottom: '1px solid #e5e7eb',
+                  }}
+                >
+                  Articles
+                </Link>
+
+                <Link
+                  to="/help"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{
+                    textDecoration: 'none',
+                    color: '#374151',
+                    fontSize: 'var(--font-size-base)',
+                    fontWeight: '500',
+                    padding: '0.75rem 0',
+                    borderBottom: '1px solid #e5e7eb',
+                  }}
+                >
+                  Ask for help
+                </Link>
+
+                <Link
+                  to="/therapists"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{
+                    textDecoration: 'none',
+                    color: '#374151',
+                    fontSize: 'var(--font-size-base)',
+                    fontWeight: '500',
+                    padding: '0.75rem 0',
+                    borderBottom: '1px solid #e5e7eb',
+                  }}
+                >
+                  Search
+                </Link>
+
+                <Link
+                  to="tel:+385-1-234-5678"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{
+                    backgroundColor: '#f59e0b',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '6px',
+                    textDecoration: 'none',
+                    fontSize: 'var(--font-size-sm)',
+                    fontWeight: '600',
+                    textAlign: 'center',
+                    margin: '0.5rem 0',
+                  }}
+                >
+                  Call +385 1 234 5678
+                </Link>
+
+                {isAuthenticated ? (
+                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+                    <Link
+                      to={getDashboardRoute()}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      style={{
+                        display: 'block',
+                        padding: '0.75rem 0',
+                        textDecoration: 'none',
+                        color: '#374151',
+                        borderBottom: '1px solid #e5e7eb',
+                      }}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      style={{
+                        display: 'block',
+                        padding: '0.75rem 0',
+                        textDecoration: 'none',
+                        color: '#374151',
+                        borderBottom: '1px solid #e5e7eb',
+                      }}
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogoutClick();
+                      }}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '0.75rem 0',
+                        border: 'none',
+                        background: 'none',
+                        textAlign: 'left',
+                        color: 'var(--color-error)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+                    <Link
+                      to="/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      style={{
+                        display: 'block',
+                        padding: '0.75rem 0',
+                        textDecoration: 'none',
+                        color: '#374151',
+                        textAlign: 'center',
+                        borderBottom: '1px solid #e5e7eb',
+                      }}
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      style={{
+                        display: 'block',
+                        backgroundColor: '#f59e0b',
+                        color: 'white',
+                        padding: '12px 24px',
+                        borderRadius: '6px',
+                        textDecoration: 'none',
+                        fontSize: 'var(--font-size-base)',
+                        fontWeight: '600',
+                        textAlign: 'center',
+                        margin: '0.5rem 0',
+                      }}
+                    >
+                      Get Started
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

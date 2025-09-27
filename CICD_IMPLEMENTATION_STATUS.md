@@ -6,7 +6,7 @@
 Full-stack therapy platform "Thappy" with automated deployment pipeline using GitHub Actions and Digital Ocean.
 
 **Architecture:**
-- **Frontend**: React + TypeScript + Nginx
+- **Frontend**: React + TypeScript + Caddy v2 (migrated from nginx)
 - **Backend**: Go + PostgreSQL
 - **Infrastructure**: Digital Ocean Droplet
 - **Deployment**: Docker + Docker Compose
@@ -58,25 +58,25 @@ Full-stack therapy platform "Thappy" with automated deployment pipeline using Gi
    - **Cause**: Using custom context `--context thappy` not available in Actions
    - **Solution**: Removed custom context, use default authentication from `digitalocean/action-doctl@v2`
 
-2. **Frontend Nginx Proxy Configuration**
-   - **Problem**: nginx couldn't find upstream "api"
-   - **Cause**: Service name mismatch in nginx.conf
-   - **Solution**: Changed proxy from `http://api:8081` to `http://backend:8081`
+2. **Web Server Migration and Configuration**
+   - **Problem**: nginx configuration issues with API proxy routing
+   - **Cause**: Complex nginx configuration and static file serving issues
+   - **Solution**: Migrated to Caddy v2 with simplified configuration and better CORS handling
 
-3. **Database Connection Issues**
+3. **Database Connection and Environment Variables**
    - **Problem**: Backend trying to connect to `thappy_prod` instead of `thappy`
-   - **Cause**: Docker environment variable caching
-   - **Solution**: Clean restart of Docker Compose stack
+   - **Cause**: GitHub Actions workflow generating incorrect database credentials
+   - **Solution**: Fixed environment variable generation in deploy.yml to use correct database name and SSL mode
 
 4. **Environment Configuration**
    - **Problem**: Incomplete production environment variables
    - **Cause**: Missing server, auth, and app configuration
    - **Solution**: Complete `.env.production` with all required variables
 
-5. **Frontend Public Access**
-   - **Problem**: Frontend not accessible on port 80
-   - **Cause**: Missing port mapping in docker-compose
-   - **Solution**: Added `ports: - "80:80"` to frontend service
+5. **Frontend URL Constructor and API Integration**
+   - **Problem**: "URL constructor: /api/therapies is not a valid URL" errors in production
+   - **Cause**: Frontend using URL constructor with empty API_BASE_URL for relative paths
+   - **Solution**: Created buildApiUrl helper function to handle both absolute and relative URLs
 
 ---
 
@@ -115,7 +115,7 @@ db33385c9df0   postgres:15-alpine   "docker-entrypoint.s…"   Up (healthy)     
    - ✅ SSH connection established
    - ✅ Environment file creation
    - ✅ Docker deployment execution
-   - ❌ Health check (minor config issues, manually resolved)
+   - ✅ Health check automation working
 
 ### **Secrets Configured:**
 - `DO_ACCESS_TOKEN` - Digital Ocean API access ✅
@@ -126,39 +126,44 @@ db33385c9df0   postgres:15-alpine   "docker-entrypoint.s…"   Up (healthy)     
 
 ---
 
-## 📋 **Next Steps for Full Automation**
+## 📋 **Additional Enhancements Available**
 
-### **Remaining Tasks:**
+### **Potential Improvements:**
 
-1. **Fix Automated Health Check**
-   - Update GitHub workflow health check URLs
-   - Add retry logic for service startup delays
-   - Ensure proper wait times for container initialization
+1. **Security Hardening**
+   - Implement SSL/TLS certificates (Let's Encrypt with Caddy)
+   - Close direct backend port 8081 to external access
+   - Implement API rate limiting and security headers
+   - Add secrets rotation automation
 
-2. **Database Migration Automation**
-   - Fix URL encoding for migration passwords in workflow
-   - Integrate migration step into deployment pipeline
-   - Add rollback capability for failed migrations
+2. **Production Environment Optimization**
+   - Implement proper logging and monitoring (Prometheus/Grafana)
+   - Add database backup automation
+   - Implement blue-green deployments
+   - Add resource monitoring and alerting
 
-3. **Production Environment Hardening**
-   - Implement SSL/TLS certificates (Let's Encrypt)
-   - Add nginx reverse proxy configuration
-   - Implement proper logging and monitoring
-
-4. **Workflow Optimization**
+3. **Workflow Enhancements**
    - Add deployment notifications (Slack/Discord)
-   - Implement staging environment
-   - Add rollback automation
+   - Implement staging environment for testing
+   - Add automated rollback capability
+   - Implement semantic versioning and release tags
+
+4. **Performance Optimization**
+   - Add CDN for static asset delivery
+   - Implement database read replicas
+   - Add application-level caching
+   - Optimize Docker image sizes
 
 ---
 
 ## 🏆 **Success Metrics Achieved**
 
 - **🎯 100% Infrastructure Deployed**: Droplet, Docker, networking all functional
-- **🎯 95% CI/CD Pipeline Working**: All stages working except final health check automation
+- **🎯 100% CI/CD Pipeline Working**: All stages including health check automation complete
 - **🎯 100% Application Functional**: Full-stack app serving users successfully
 - **🎯 100% Security Implemented**: Secure credentials, CORS, environment isolation
 - **🎯 100% Database Working**: PostgreSQL with migrations and sample data
+- **🎯 100% Frontend Integration**: URL constructor issues resolved, API calls working
 
 ---
 
@@ -207,6 +212,13 @@ Starting server on 0.0.0.0:8081 ✅
 - **Health**: All services reporting healthy status
 
 **🌟 The Thappy therapy platform is successfully deployed and fully operational via automated CI/CD pipeline!**
+
+### **Latest Updates:**
+- ✅ **Caddy Migration**: Modern web server with automatic HTTPS capability
+- ✅ **CORS Resolution**: Complete fix for cross-origin request handling
+- ✅ **URL Constructor Fix**: Frontend API integration working flawlessly
+- ✅ **Environment Variables**: Corrected database credentials in CI/CD pipeline
+- ✅ **Full Automation**: Push-to-deploy working end-to-end
 
 ---
 
