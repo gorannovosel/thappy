@@ -48,6 +48,11 @@
         reverse_proxy backend:8081
     }
 
+    # Security: Block access to hidden files (but not root)
+    handle /\..* {
+        respond "Access denied" 403
+    }
+
     # Serve static files
     handle {
         root * /usr/share/caddy
@@ -60,10 +65,6 @@
 
         # Client-side routing fallback
         try_files {path} {path}/ /index.html
-    }
-
-    # Security: Block access to hidden files
-    handle /.*  {
-        respond "Access denied" 403
+        file_server
     }
 }
