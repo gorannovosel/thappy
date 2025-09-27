@@ -116,48 +116,42 @@ jobs:
           ssh-keyscan -H ${{ steps.droplet.outputs.ip }} >> ~/.ssh/known_hosts
 
       - name: Create deployment environment
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD_PROD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET_PROD }}
+          CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
         run: |
-          ssh root@${{ steps.droplet.outputs.ip }} << 'ENDSSH'
-            # Ensure deployment directory exists
-            mkdir -p /opt/thappy
-            cd /opt/thappy
-
-            # Create .env file
-            cat > .env.production << 'ENVEOF'
+          # Create .env file locally with proper variable substitution
+          cat > .env.production << EOF
           DB_USER=thappy
-          DB_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}
+          DB_PASSWORD=${DB_PASSWORD}
           DB_NAME=thappy
-          JWT_SECRET=${{ secrets.JWT_SECRET_PROD }}
+          JWT_SECRET=${JWT_SECRET}
           JWT_TOKEN_TTL=24h
           APP_VERSION=${{ github.sha }}
-          CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
-          ENVEOF
-          ENDSSH
+          CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+          EOF
+
+          # Ensure deployment directory exists on server
+          ssh root@${{ steps.droplet.outputs.ip }} "mkdir -p /opt/thappy"
+
+          # Copy environment file to server
+          scp -i ~/.ssh/id_rsa .env.production root@${{ steps.droplet.outputs.ip }}:/opt/thappy/
 
       - name: Deploy application
         run: |
-          ssh root@${{ steps.droplet.outputs.ip }} << 'ENDSSH'
-            cd /opt/thappy
-
-            # Pull latest code
+          ssh root@${{ steps.droplet.outputs.ip }} "
+            cd /opt/thappy &&
             if [ ! -d .git ]; then
               git clone https://github.com/${{ github.repository }} .
-            fi
-            git fetch origin
-            git reset --hard origin/main
-
-            # Stop current deployment
-            docker-compose -f docker-compose.production.yml --env-file .env.production down || true
-
-            # Build and start new deployment
-            docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build
-
-            # Run migrations
-            docker-compose -f docker-compose.production.yml --env-file .env.production run --rm migrate
-
-            # Clean up old images
+            fi &&
+            git fetch origin &&
+            git reset --hard origin/main &&
+            docker-compose -f docker-compose.production.yml --env-file .env.production down || true &&
+            docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build &&
+            docker-compose -f docker-compose.production.yml --env-file .env.production run --rm migrate &&
             docker system prune -af --volumes || true
-          ENDSSH
+          "
 
       - name: Health check
         run: |
@@ -251,19 +245,14 @@ jobs:
           PREVIOUS_SHA=$(git rev-parse HEAD~1)
           echo "Rolling back to commit: $PREVIOUS_SHA"
 
-          ssh root@${{ steps.droplet.outputs.ip }} << ENDSSH
-            cd /opt/thappy
-
-            # Checkout previous commit
-            git fetch origin
-            git reset --hard $PREVIOUS_SHA
-
-            # Restart services with previous version
-            docker-compose -f docker-compose.production.yml --env-file .env.production down
-            docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build
-
-            echo "✅ Rollback completed to $PREVIOUS_SHA"
-          ENDSSH
+          ssh root@${{ steps.droplet.outputs.ip }} "
+            cd /opt/thappy &&
+            git fetch origin &&
+            git reset --hard $PREVIOUS_SHA &&
+            docker-compose -f docker-compose.production.yml --env-file .env.production down &&
+            docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build &&
+            echo '✅ Rollback completed to $PREVIOUS_SHA'
+          "
 
   # Notification job
   notify:
