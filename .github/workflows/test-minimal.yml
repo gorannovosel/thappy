@@ -1,0 +1,23 @@
+name: Test Minimal Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Minimal Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Test basic commands
+        run: |
+          echo "Basic test successful"
+          echo "Repository: ${{ github.repository }}"
+
+      - name: Test environment variables
+        env:
+          TEST_VAR: "test_value"
+        run: |
+          echo "TEST_VAR: ${TEST_VAR}"
