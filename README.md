@@ -127,6 +127,15 @@ make migrate-down     # Rollback migrations
 make db-shell         # Connect to database
 ```
 
+### Production Database Access
+```bash
+make tunnel-create    # Create SSH tunnel to production database
+make tunnel-connect   # Connect to production database via tunnel
+make tunnel-status    # Show SSH tunnel status
+make tunnel-test      # Test tunnel connection
+make tunnel-kill      # Kill SSH tunnel
+```
+
 ### Docker Commands
 ```bash
 make stop             # Stop all services
@@ -190,6 +199,7 @@ make do-ssh           # SSH into production server
 
 ## 🗄️ Database Connection
 
+### Development Database
 ```bash
 # External connection (from host)
 Host: localhost
@@ -200,6 +210,91 @@ Password: thappy_dev_password
 
 # Quick connect
 psql -h localhost -p 5433 -U thappy -d thappy
+```
+
+### Production Database Access
+
+**Production database is secured and requires SSH tunnel access.**
+
+#### Method 1: SSH Tunnel + Direct Connection
+```bash
+# 1. Create SSH tunnel to production database
+ssh -L 15432:172.18.0.3:5432 deploy@164.92.134.4 -N &
+
+# 2. Connect through tunnel (password required)
+psql -h localhost -p 15432 -U thappy -d thappy
+```
+
+#### Method 2: Direct SSH Access
+```bash
+# Connect directly via SSH
+ssh deploy@164.92.134.4 "sudo docker exec -it thappy-postgres-prod psql -U thappy -d thappy"
+```
+
+#### DBeaver Configuration
+**Option A: Manual Tunnel (Recommended)**
+1. Create tunnel: `make tunnel-create` (or `ssh -L 15432:172.18.0.3:5432 deploy@164.92.134.4 -N &`)
+2. DBeaver settings (no SSH tunnel):
+   - Host: `localhost`
+   - Port: `15432`
+   - Database: `thappy`
+   - Username: `thappy`
+   - Password: (contact admin for credentials)
+
+**Option B: DBeaver SSH Tunnel**
+- SSH Host: `164.92.134.4`
+- SSH User: `deploy`
+- SSH Key: `/home/goran/.ssh/id_rsa`
+- Remote Host: `172.18.0.3` (PostgreSQL container IP)
+- Remote Port: `5432`
+
+#### Production Database Details
+- **Host**: 164.92.134.4 (behind SSH)
+- **Database**: thappy
+- **Username**: thappy
+- **Container IP**: 172.18.0.3 (internal Docker network)
+- **Security**: Not exposed to internet, SSH tunnel required
+
+#### SSH Tunnel Troubleshooting
+
+**Port Already in Use Error:**
+```bash
+# Check what's using the port
+netstat -tlnp | grep :15432
+
+# Use different port
+ssh -L 25432:172.18.0.3:5432 deploy@164.92.134.4 -N &
+```
+
+**Tunnel Command Breakdown:**
+```bash
+ssh -L 15432:172.18.0.3:5432 deploy@164.92.134.4 -N &
+#   │   │     │         │     │                   │  │
+#   │   │     │         │     │                   │  └─ Run in background
+#   │   │     │         │     │                   └─ No remote command execution
+#   │   │     │         │     └─ SSH server (production)
+#   │   │     │         └─ PostgreSQL port in container
+#   │   │     └─ PostgreSQL container IP
+#   │   └─ Local port on your machine
+#   └─ Port forwarding flag
+```
+
+**Kill Hanging Tunnels:**
+```bash
+# Find tunnel processes
+ps aux | grep -E "ssh.*-L.*15432"
+
+# Kill all SSH tunnels to production
+pkill -f "ssh.*164.92.134.4"
+```
+
+**Test Tunnel Connection:**
+```bash
+# Test if tunnel port is accessible
+nc -z localhost 15432 && echo "Tunnel working" || echo "Tunnel failed"
+
+# Test database connection through tunnel (password required)
+psql -h localhost -p 15432 -U thappy -d thappy -c "SELECT 'Connected!' as status;"
 ```
 
 ## 🧪 Test Data

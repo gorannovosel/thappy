@@ -381,6 +381,54 @@ type-check:
 	cd frontend && pnpm run type-check
 
 # =============================================================================
+# Production Database Access (SSH Tunnels)
+# =============================================================================
+
+## tunnel-create: Create SSH tunnel to production database
+.PHONY: tunnel-create
+tunnel-create:
+	@echo "🔗 Creating SSH tunnel to production database..."
+	@DROPLET_IP=$$(doctl compute droplet list --format PublicIPv4,Name --no-header --context $(DO_CONTEXT) | grep thappy-prod | awk '{print $$1}') && \
+	DB_CONTAINER_IP=$$(doctl compute ssh thappy-prod --context $(DO_CONTEXT) --ssh-command "sudo docker inspect thappy-postgres-prod --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'" 2>/dev/null) && \
+	echo "Tunnel: localhost:15432 -> $$DROPLET_IP -> $$DB_CONTAINER_IP:5432" && \
+	ssh -L 15432:$$DB_CONTAINER_IP:5432 deploy@$$DROPLET_IP -N &
+	@echo "✅ SSH tunnel created on port 15432"
+	@echo "💡 Connect with: psql -h localhost -p 15432 -U thappy -d thappy"
+
+## tunnel-kill: Kill SSH tunnel to production database
+.PHONY: tunnel-kill
+tunnel-kill:
+	@echo "🔌 Killing SSH tunnels..."
+	@pkill -f "ssh.*-L.*15432" 2>/dev/null && echo "✅ SSH tunnel killed" || echo "ℹ️  No tunnel running"
+
+## tunnel-test: Test SSH tunnel connection
+.PHONY: tunnel-test
+tunnel-test:
+	@echo "🧪 Testing SSH tunnel connection..."
+	@nc -z localhost 15432 && echo "✅ Tunnel is working" || echo "❌ Tunnel not working"
+
+## tunnel-connect: Connect to production database via tunnel
+.PHONY: tunnel-connect
+tunnel-connect:
+	@echo "🗄️ Connecting to production database..."
+	@if ! nc -z localhost 15432 2>/dev/null; then \
+		echo "⚠️  No tunnel detected. Creating tunnel first..."; \
+		$(MAKE) tunnel-create; \
+		sleep 3; \
+	fi
+	@echo "Enter database password when prompted"
+	@psql -h localhost -p 15432 -U thappy -d thappy
+
+## tunnel-status: Show SSH tunnel status
+.PHONY: tunnel-status
+tunnel-status:
+	@echo "📊 SSH Tunnel Status:"
+	@ps aux | grep -E "ssh.*-L.*15432" | grep -v grep || echo "❌ No tunnel running"
+	@echo ""
+	@echo "🔗 Port Status:"
+	@nc -z localhost 15432 && echo "✅ Port 15432 is accessible" || echo "❌ Port 15432 not accessible"
+
+# =============================================================================
 # Database Operations
 # =============================================================================
 
