@@ -104,14 +104,15 @@ jobs:
       - name: Get droplet IP
         id: droplet
         run: |
-          DROPLET_IP=$(doctl compute droplet list --format PublicIPv4,Name --no-header --context ${{ env.DO_CONTEXT }} | grep thappy-prod | awk '{print $1}')
+          # Use default context since digitalocean/action-doctl sets that up
+          DROPLET_IP=$(doctl compute droplet list --format PublicIPv4,Name --no-header | grep thappy-prod | awk '{print $1}')
           echo "ip=$DROPLET_IP" >> $GITHUB_OUTPUT
           echo "Droplet IP: $DROPLET_IP"
 
           # Verify IP was found
           if [ -z "$DROPLET_IP" ]; then
             echo "ERROR: Could not find droplet IP"
-            doctl compute droplet list --context ${{ env.DO_CONTEXT }}
+            doctl compute droplet list
             exit 1
           fi
 
@@ -208,7 +209,8 @@ jobs:
       - name: Get droplet IP
         id: droplet
         run: |
-          DROPLET_IP=$(doctl compute droplet list --format PublicIPv4,Name --no-header --context ${{ env.DO_CONTEXT }} | grep thappy-prod | awk '{print $1}')
+          # Use default context since digitalocean/action-doctl sets that up
+          DROPLET_IP=$(doctl compute droplet list --format PublicIPv4,Name --no-header | grep thappy-prod | awk '{print $1}')
           echo "ip=$DROPLET_IP" >> $GITHUB_OUTPUT
 
       - name: Setup SSH
