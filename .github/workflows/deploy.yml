@@ -123,7 +123,7 @@ jobs:
             cd /opt/thappy
 
             # Create .env file
-            cat > .env.production << EOF
+            cat > .env.production << 'ENVEOF'
           DB_USER=thappy
           DB_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}
           DB_NAME=thappy
@@ -131,7 +131,7 @@ jobs:
           JWT_TOKEN_TTL=24h
           APP_VERSION=${{ github.sha }}
           CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
-          EOF
+          ENVEOF
           ENDSSH
 
       - name: Deploy application
