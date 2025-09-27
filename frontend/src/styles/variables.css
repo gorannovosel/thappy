@@ -1,5 +1,5 @@
 :root {
-  /* Colors */
+  /* Colors - Brightline Mental Health Theme */
   --color-primary: #f59e0b;
   --color-primary-dark: #d97706;
   --color-primary-hover: #d97706;
@@ -7,6 +7,14 @@
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
+
+  /* Theme-specific therapy colors (from design) */
+  --color-therapy-yellow: #F3D525;
+  --color-therapy-purple: #5B3A89;
+  --color-therapy-mint: #9FD5D1;
+  --color-therapy-navy: #1D3F5F;
+  --color-therapy-orange: #EC8936;
+  --color-therapy-teal: #457F6C;
 
   /* Text colors */
   --color-text: #1f2937;
