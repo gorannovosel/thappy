@@ -167,25 +167,25 @@ jobs:
           EOF
 
           # Ensure deployment directory exists on server
-          ssh root@${{ steps.droplet.outputs.ip }} "mkdir -p /opt/thappy"
+          ssh deploy@${{ steps.droplet.outputs.ip }} "mkdir -p /opt/thappy"
 
           # Copy environment file to server
-          scp -i ~/.ssh/id_rsa .env.production root@${{ steps.droplet.outputs.ip }}:/opt/thappy/
+          scp -i ~/.ssh/id_rsa .env.production deploy@${{ steps.droplet.outputs.ip }}:/opt/thappy/
 
       - name: Deploy application
         run: |
-          ssh root@${{ steps.droplet.outputs.ip }} "
+          ssh deploy@${{ steps.droplet.outputs.ip }} "
             cd /opt/thappy &&
             if [ ! -d .git ]; then
               git clone https://github.com/${{ github.repository }} .
             fi &&
             git fetch origin &&
             git reset --hard origin/main &&
-            docker-compose -f docker-compose.production.yml --env-file .env.production down || true &&
-            docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build postgres backend frontend &&
+            sudo docker-compose -f docker-compose.production.yml --env-file .env.production down || true &&
+            sudo docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build postgres backend frontend &&
             sleep 15 &&
-            docker run --rm --network thappy-network-prod -v /opt/thappy/migrations:/migrations migrate/migrate -path=/migrations -database='postgres://thappy:\${DB_PASSWORD}@postgres:5432/thappy?sslmode=disable' up &&
-            docker system prune -af --volumes || true
+            sudo docker run --rm --network thappy-network-prod -v /opt/thappy/migrations:/migrations migrate/migrate -path=/migrations -database='postgres://thappy:\${DB_PASSWORD}@postgres:5432/thappy?sslmode=disable' up &&
+            sudo docker system prune -af --volumes || true
           "
 
       - name: Health check
@@ -277,12 +277,12 @@ jobs:
           PREVIOUS_SHA=$(git rev-parse HEAD~1)
           echo "Rolling back to commit: $PREVIOUS_SHA"
 
-          ssh root@${{ steps.droplet.outputs.ip }} "
+          ssh deploy@${{ steps.droplet.outputs.ip }} "
             cd /opt/thappy &&
             git fetch origin &&
             git reset --hard $PREVIOUS_SHA &&
-            docker-compose -f docker-compose.production.yml --env-file .env.production down &&
-            docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build &&
+            sudo docker-compose -f docker-compose.production.yml --env-file .env.production down &&
+            sudo docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build &&
             echo '✅ Rollback completed to $PREVIOUS_SHA'
           "
 
