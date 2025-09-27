@@ -22,21 +22,21 @@ COPY .env.development.docker .env.production
 # Build the application (disable ESLint for Docker builds)
 RUN DISABLE_ESLINT_PLUGIN=true pnpm run build
 
-# Stage 2: Serve with nginx
-FROM nginx:alpine
+# Stage 2: Serve with Caddy
+FROM caddy:2-alpine
 
 # Copy built application
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/build /usr/share/caddy
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy Caddy configuration
+COPY Caddyfile /etc/caddy/Caddyfile
 
 # Expose port
 EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start Caddy (default command)
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
