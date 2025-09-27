@@ -141,10 +141,10 @@ jobs:
           # Database Configuration (Production)
           DB_HOST=postgres
           DB_PORT=5432
-          DB_USER=thappy_prod
+          DB_USER=thappy
           DB_PASSWORD=${DB_PASSWORD}
-          DB_NAME=thappy_prod
-          DB_SSLMODE=require
+          DB_NAME=thappy
+          DB_SSLMODE=disable
           DB_MAX_OPEN_CONNS=25
           DB_MAX_IDLE_CONNS=5
           DB_CONN_MAX_LIFETIME=300s
@@ -184,7 +184,7 @@ jobs:
             docker-compose -f docker-compose.production.yml --env-file .env.production down || true &&
             docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build postgres backend frontend &&
             sleep 15 &&
-            docker run --rm --network thappy-network-prod -v /opt/thappy/migrations:/migrations migrate/migrate -path=/migrations -database='postgres://\${DB_USER}:\${DB_PASSWORD}@postgres:5432/\${DB_NAME}?sslmode=disable' up &&
+            docker run --rm --network thappy-network-prod -v /opt/thappy/migrations:/migrations migrate/migrate -path=/migrations -database='postgres://thappy:\${DB_PASSWORD}@postgres:5432/thappy?sslmode=disable' up &&
             docker system prune -af --volumes || true
           "
 
