@@ -182,31 +182,57 @@ jobs:
             git fetch origin &&
             git reset --hard origin/main &&
             docker-compose -f docker-compose.production.yml --env-file .env.production down || true &&
-            docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build &&
-            docker-compose -f docker-compose.production.yml --env-file .env.production run --rm migrate &&
+            docker-compose -f docker-compose.production.yml --env-file .env.production up -d --build postgres backend frontend &&
+            sleep 15 &&
+            docker run --rm --network thappy-network-prod -v /opt/thappy/migrations:/migrations migrate/migrate -path=/migrations -database='postgres://\${DB_USER}:\${DB_PASSWORD}@postgres:5432/\${DB_NAME}?sslmode=disable' up &&
             docker system prune -af --volumes || true
           "
 
       - name: Health check
         run: |
           echo "Waiting for services to be healthy..."
-          sleep 30
+          sleep 45
 
-          # Check backend health
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://${{ steps.droplet.outputs.ip }}:8081/health)
-          if [ "$response" != "200" ]; then
-            echo "Backend health check failed with status: $response"
-            exit 1
-          fi
-          echo "✅ Backend is healthy"
+          # Check backend health with retries
+          echo "Checking backend health..."
+          for i in {1..5}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://${{ steps.droplet.outputs.ip }}:8081/health)
+            if [ "$response" = "200" ]; then
+              echo "✅ Backend is healthy (attempt $i)"
+              break
+            fi
+            echo "Backend health check attempt $i failed with status: $response"
+            if [ $i -eq 5 ]; then
+              echo "❌ Backend health check failed after 5 attempts"
+              exit 1
+            fi
+            sleep 10
+          done
 
-          # Check frontend health
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://${{ steps.droplet.outputs.ip }})
-          if [ "$response" != "200" ] && [ "$response" != "304" ]; then
-            echo "Frontend health check failed with status: $response"
-            exit 1
+          # Check frontend health with retries
+          echo "Checking frontend health..."
+          for i in {1..5}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://${{ steps.droplet.outputs.ip }}/health)
+            if [ "$response" = "200" ]; then
+              echo "✅ Frontend is healthy (attempt $i)"
+              break
+            fi
+            echo "Frontend health check attempt $i failed with status: $response"
+            if [ $i -eq 5 ]; then
+              echo "❌ Frontend health check failed after 5 attempts"
+              exit 1
+            fi
+            sleep 10
+          done
+
+          # Test API functionality
+          echo "Testing API functionality..."
+          therapies_count=$(curl -s http://${{ steps.droplet.outputs.ip }}/api/therapies | jq -r '.therapies | length' 2>/dev/null || echo "0")
+          if [ "$therapies_count" -gt "0" ]; then
+            echo "✅ API is functional - $therapies_count therapies loaded"
+          else
+            echo "⚠️ Warning: API test failed, but health checks passed"
           fi
-          echo "✅ Frontend is healthy"
 
       # Deployment record creation disabled due to GitHub token permissions
       # - name: Create deployment record
