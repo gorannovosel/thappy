@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -20,6 +21,11 @@ func NewUserHandler(userService user.UserService) *UserHandler {
 }
 
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		h.writeErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeErrorResponse(w, http.StatusBadRequest, ErrInvalidJSON.Error())
@@ -46,6 +52,11 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) RegisterWithRole(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		h.writeErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
 	var req RegisterWithRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeErrorResponse(w, http.StatusBadRequest, ErrInvalidJSON.Error())
@@ -72,6 +83,11 @@ func (h *UserHandler) RegisterWithRole(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		h.writeErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeErrorResponse(w, http.StatusBadRequest, ErrInvalidJSON.Error())
@@ -90,8 +106,6 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user details for response
-	// Note: In a real implementation, you might get this from the token or make another service call
-	// For now, we'll get user by email from the service
 	user, err := h.getUserByEmail(r.Context(), req.Email)
 	if err != nil {
 		h.handleServiceError(w, err)
@@ -108,6 +122,11 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.writeErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
 	userID, err := h.getUserIDFromContext(r)
 	if err != nil {
 		h.writeErrorResponse(w, http.StatusUnauthorized, ErrUnauthorized.Error())
@@ -226,18 +245,6 @@ func (h *UserHandler) getUserIDFromContext(r *http.Request) (string, error) {
 }
 
 // getUserByEmail is a helper method to get user by email
-// In a real implementation, this might be a separate method on the service
-// or you might extract the user ID from the token
-func (h *UserHandler) getUserByEmail(ctx interface{}, email string) (*user.User, error) {
-	// This is a simplified implementation
-	// In practice, you'd need to add a GetUserByEmail method to the service
-	// or extract user info from the JWT token
-
-	// For now, we'll create a mock user response
-	// This should be replaced with actual service call
-	user, err := user.NewUser(email, "dummy_password")
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
+func (h *UserHandler) getUserByEmail(ctx context.Context, email string) (*user.User, error) {
+	return h.userService.GetUserByEmail(ctx, email)
 }

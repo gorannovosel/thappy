@@ -239,6 +239,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => clearInterval(interval);
   }, [state.isAuthenticated, logout]);
 
+  // Listen for automatic logout events from API client
+  useEffect(() => {
+    const handleAutoLogout = (event: CustomEvent) => {
+      const { reason } = event.detail;
+      console.log(`Automatic logout triggered: ${reason}`);
+
+      // Update auth state to logged out
+      dispatch({ type: 'LOGOUT' });
+    };
+
+    window.addEventListener('auth:logout', handleAutoLogout as EventListener);
+
+    return () => {
+      window.removeEventListener('auth:logout', handleAutoLogout as EventListener);
+    };
+  }, []);
+
   const value: AuthContextType = {
     ...state,
     login,

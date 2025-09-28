@@ -65,6 +65,36 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle 401 Unauthorized responses with automatic logout
+        // Only logout for legitimate auth failures, not incomplete routes
+        if (response.status === 401) {
+          // Check if this is a real authentication error vs incomplete endpoint
+          const isAuthError = data.error && (
+            data.error.toLowerCase().includes('token') ||
+            data.error.toLowerCase().includes('unauthorized') ||
+            data.error.toLowerCase().includes('invalid') ||
+            data.error.toLowerCase().includes('expired') ||
+            data.error.toLowerCase().includes('authentication')
+          );
+
+          // Only auto-logout for genuine authentication failures
+          if (isAuthError) {
+            console.log('Authentication failure detected, logging out:', data.error);
+
+            // Clear auth data and trigger logout event
+            localStorage.removeItem(LOCAL_STORAGE_KEYS.TOKEN);
+            localStorage.removeItem(LOCAL_STORAGE_KEYS.USER);
+
+            // Dispatch custom event for AuthContext to handle
+            window.dispatchEvent(new CustomEvent('auth:logout', {
+              detail: { reason: 'token_expired', message: data.error }
+            }));
+          } else {
+            // Log but don't auto-logout for unclear 401s (likely incomplete routes)
+            console.warn('Received 401 but no clear auth error message. Not auto-logging out:', data.error);
+          }
+        }
+
         throw new ApiError(response.status, data.error || 'Request failed');
       }
 

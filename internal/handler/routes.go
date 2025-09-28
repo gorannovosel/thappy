@@ -8,6 +8,7 @@ import (
 	therapistDomain "github.com/goran/thappy/internal/domain/therapist"
 	therapyDomain "github.com/goran/thappy/internal/domain/therapy"
 	"github.com/goran/thappy/internal/domain/user"
+	httpMiddleware "github.com/goran/thappy/internal/handler/http"
 )
 
 type Router struct {
@@ -16,6 +17,7 @@ type Router struct {
 	therapistHandler *TherapistHandler
 	therapyHandler   *TherapyHandler
 	articleHandler   *ArticleHandler
+	authMiddleware   *httpMiddleware.AuthMiddleware
 }
 
 func NewRouter(
@@ -32,6 +34,7 @@ func NewRouter(
 		therapistHandler: NewTherapistHandler(therapistService),
 		therapyHandler:   NewTherapyHandler(therapyService),
 		articleHandler:   NewArticleHandler(articleService),
+		authMiddleware:   httpMiddleware.NewAuthMiddleware(tokenService, userService),
 	}
 }
 
@@ -59,6 +62,18 @@ func (router *Router) SetupRoutes() http.Handler {
 	mux.HandleFunc("/api/therapists/search", router.therapistHandler.SearchTherapists)
 	mux.HandleFunc("/api/therapists/profile/", router.therapistHandler.GetTherapistByLicenseNumber)
 	mux.HandleFunc("/api/therapists/", router.therapistHandler.GetTherapistByID)
+
+	// Protected endpoints (require authentication)
+	mux.Handle("/api/profile", router.authMiddleware.RequireAuth(http.HandlerFunc(router.userHandler.GetProfile)))
+	mux.Handle("/api/profile/update", router.authMiddleware.RequireAuth(http.HandlerFunc(router.userHandler.UpdateProfile)))
+
+	// Client-specific profile endpoints (require authentication)
+	mux.Handle("/api/client/profile", router.authMiddleware.RequireAuth(http.HandlerFunc(router.clientHandler.CreateProfile)))
+	mux.Handle("/api/client/profile/get", router.authMiddleware.RequireAuth(http.HandlerFunc(router.clientHandler.GetProfile)))
+	mux.Handle("/api/client/profile/personal-info", router.authMiddleware.RequireAuth(http.HandlerFunc(router.clientHandler.UpdatePersonalInfo)))
+	mux.Handle("/api/client/profile/contact-info", router.authMiddleware.RequireAuth(http.HandlerFunc(router.clientHandler.UpdateContactInfo)))
+	mux.Handle("/api/client/profile/date-of-birth", router.authMiddleware.RequireAuth(http.HandlerFunc(router.clientHandler.SetDateOfBirth)))
+	mux.Handle("/api/client/profile/delete", router.authMiddleware.RequireAuth(http.HandlerFunc(router.clientHandler.DeleteProfile)))
 
 	// Wrap with CORS middleware
 	return router.corsMiddleware(mux)

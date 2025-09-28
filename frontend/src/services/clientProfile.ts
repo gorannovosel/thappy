@@ -1,8 +1,8 @@
 import { ClientProfileResponse } from '../types/api';
-import { API_BASE_URL } from '../utils/constants';
+import { API_BASE_URL, LOCAL_STORAGE_KEYS } from '../utils/constants';
 
 const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem(LOCAL_STORAGE_KEYS.TOKEN);
   return {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),

@@ -122,9 +122,11 @@ make format           # Format code
 
 ### Database Commands
 ```bash
-make migrate-up       # Apply database migrations
-make migrate-down     # Rollback migrations
-make db-shell         # Connect to database
+make migrate-up          # Apply database migrations
+make migrate-down        # Rollback migrations
+make db-shell            # Connect to database
+make sample-data-status  # Check sample user data status
+make sample-data-reset   # Reset sample user data (dev only)
 ```
 
 ### Production Database Access
@@ -297,12 +299,112 @@ nc -z localhost 15432 && echo "Tunnel working" || echo "Tunnel failed"
 psql -h localhost -p 15432 -U thappy -d thappy -c "SELECT 'Connected!' as status;"
 ```
 
-## 🧪 Test Data
+## 🧪 Test User Credentials
 
-The test suite creates these users for testing:
+**⚠️ SECURITY NOTICE** - These test users exist in all environments (including production) for testing and demonstration purposes. Monitor their usage and consider additional security measures.
+
+#### Sample Client Accounts
+| Email | Password | Status | Therapist | Notes |
+|-------|----------|--------|-----------|-------|
+| `alice.client@example.com` | `TestPass123!` | Active | Dr. Emily Smith | Anxiety & stress counseling |
+| `bob.client@example.com` | `TestPass123!` | Active | Dr. Michael Johnson | Trauma recovery |
+| `carol.client@example.com` | `TestPass123!` | Active | Dr. Sarah Wilson | Family therapy |
+| `david.client@example.com` | `TestPass123!` | Inactive | None | New client, intake pending |
+| `eve.client@example.com` | `TestPass123!` | Active | Dr. Lisa Davis | Eating disorder recovery |
+| `frank.client@example.com` | `TestPass123!` | Active | Dr. Carlos Martinez | Depression counseling |
+| `grace.client@example.com` | `TestPass123!` | Active | Dr. Jennifer Thompson | Postpartum support |
+| `henry.client@example.com` | `TestPass123!` | Active | Dr. Robert Anderson | Substance abuse recovery |
+
+#### Sample Therapist Accounts
+| Email | Password | Specializations | Status | Notes |
+|-------|----------|----------------|--------|-------|
+| `dr.smith@example.com` | `TestPass123!` | Anxiety, Depression, CBT | Accepting | Existing therapist |
+| `dr.johnson@example.com` | `TestPass123!` | Trauma, PTSD, EMDR | Accepting | Existing therapist |
+| `dr.wilson@example.com` | `TestPass123!` | Family, Couples, Child Psychology | Accepting | Existing therapist |
+| `dr.brown@example.com` | `TestPass123!` | Addiction, Substance Abuse, Group | Not Accepting | Existing therapist |
+| `dr.davis@example.com` | `TestPass123!` | Eating Disorders, Body Image, Adolescent | Accepting | Existing therapist |
+| `dr.martinez@example.com` | `TestPass123!` | Depression, Bipolar, Mood Disorders | Accepting | Additional sample |
+| `dr.thompson@example.com` | `TestPass123!` | Maternal Health, Postpartum, Women's Issues | Accepting | Additional sample |
+| `dr.anderson@example.com` | `TestPass123!` | Substance Abuse, Addiction, Motivational Interviewing | Accepting | Additional sample |
+
+#### Test Suite Legacy Users
+These users are created by the API test scripts:
 - `alice@example.com` (password: `SecurePass123!`)
 - `bob@example.com` (password: `MyPassword456!`)
 - `charlie@example.com` (password: `SuperSecret789!`)
+
+### Testing Authentication
+
+```bash
+# Test client login
+curl -X POST http://localhost:8081/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "alice.client@example.com", "password": "TestPass123!"}'
+
+# Test therapist login
+curl -X POST http://localhost:8081/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "dr.smith@example.com", "password": "TestPass123!"}'
+
+# Use JWT token for protected endpoints
+curl -X GET http://localhost:8081/api/profile \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+```
+
+### Managing Sample Data
+
+```bash
+# Load sample users (included in development startup)
+make migrate-up
+
+# Check sample data status
+make sample-data-status
+
+# Reset sample data
+make sample-data-reset
+
+# View sample data in database
+make db-shell
+\d+ users;
+\d+ client_profiles;
+\d+ therapist_profiles;
+```
+
+### Testing Sample User Authentication
+
+```bash
+# Run comprehensive authentication tests
+./test/sample-users/test-sample-logins.sh
+
+# View test documentation
+cat test/sample-users/README.md
+```
+
+### Production Security Considerations
+
+Since test users exist in production, consider these security measures:
+
+```bash
+# Monitor test user activity (production)
+make tunnel-create
+psql -h localhost -p 15432 -U thappy -d thappy -c "
+  SELECT u.email, u.role, u.created_at, u.updated_at
+  FROM users u
+  WHERE u.email LIKE '%@example.com'
+  ORDER BY u.updated_at DESC;"
+
+# Check for unauthorized access attempts
+# Add logging/monitoring for these specific accounts
+# Consider rate limiting or additional authentication for test accounts
+# Set up alerts for test account usage in production
+```
+
+**Recommended Production Security:**
+- 🔍 **Monitor Usage**: Log all test account activity
+- 🚨 **Alerts**: Set up notifications for test account logins in production
+- 🔒 **Rate Limiting**: Apply additional rate limits to test accounts
+- 📊 **Audit Trail**: Regular security audits of test account usage
+- 🗓️ **Rotation**: Consider changing test passwords periodically
 
 ## 📝 Recent Changes
 

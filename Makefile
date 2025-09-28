@@ -447,6 +447,34 @@ migrate-create:
 	@if command -v migrate >/dev/null 2>&1; then migrate create -ext sql -dir migrations -seq $(NAME); else $(HOME)/go/bin/migrate create -ext sql -dir migrations -seq $(NAME); fi
 	@echo "✅ Migration created: migrations/*_$(NAME).sql"
 
+## sample-data-reset: Reset sample user data (development only)
+.PHONY: sample-data-reset
+sample-data-reset:
+	@echo "🔄 Resetting sample user data..."
+	@$(DOCKER_COMPOSE_LOCAL) exec postgres psql -U thappy -d thappy -c "\
+		DELETE FROM client_profiles WHERE user_id LIKE 'c1000000%'; \
+		DELETE FROM therapist_profiles WHERE user_id LIKE 't1000000%'; \
+		DELETE FROM users WHERE id LIKE 'c1000000%' OR id LIKE 't1000000%';"
+	@echo "🔄 Re-inserting sample data..."
+	@$(DOCKER_COMPOSE_LOCAL) run --rm migrate -path migrations -database "postgres://thappy:thappy_dev_password@postgres:5432/thappy?sslmode=disable" up
+	@echo "✅ Sample data reset complete"
+
+## sample-data-status: Check sample user data status
+.PHONY: sample-data-status
+sample-data-status:
+	@echo "📊 Sample Data Status:"
+	@echo "Client Users:"
+	@$(DOCKER_COMPOSE_LOCAL) exec postgres psql -U thappy -d thappy -c "SELECT email, role, is_active FROM users WHERE role = 'client' AND email LIKE '%.client@example.com' ORDER BY email;"
+	@echo ""
+	@echo "Therapist Users:"
+	@$(DOCKER_COMPOSE_LOCAL) exec postgres psql -U thappy -d thappy -c "SELECT email, role, is_active FROM users WHERE role = 'therapist' AND email LIKE 'dr.%@example.com' ORDER BY email;"
+	@echo ""
+	@echo "Client Profiles:"
+	@$(DOCKER_COMPOSE_LOCAL) exec postgres psql -U thappy -d thappy -c "SELECT cp.first_name, cp.last_name, u.email FROM client_profiles cp JOIN users u ON cp.user_id = u.id WHERE u.email LIKE '%.client@example.com' ORDER BY cp.first_name;"
+	@echo ""
+	@echo "Therapist Profiles:"
+	@$(DOCKER_COMPOSE_LOCAL) exec postgres psql -U thappy -d thappy -c "SELECT tp.first_name, tp.last_name, u.email, tp.is_accepting_clients FROM therapist_profiles tp JOIN users u ON tp.user_id = u.id WHERE u.email LIKE 'dr.%@example.com' ORDER BY tp.first_name;"
+
 ## db-shell: Connect to database shell
 .PHONY: db-shell
 db-shell:
